@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Iniciar sesión</title>
+<title>Iniciar sesión / Registro</title>
 <style>
 body {
     font-family: Arial;
@@ -48,6 +48,7 @@ button:hover {
     background: #0097a7;
 }
 p {
+    margin-top: 10px;
     text-align: center;
     color: #00e676;
 }
@@ -58,18 +59,93 @@ a {
 a:hover {
     text-decoration: underline;
 }
+#registro { display: none; }
 </style>
 </head>
 <body>
+
 <div class="container">
-    <h2>Iniciar sesión</h2>
-    <?php if($message) echo "<p>$message</p>"; ?>
-    <form method="POST">
-        <input type="text" name="usuario" placeholder="Usuario" required>
-        <input type="password" name="password" placeholder="Contraseña" required>
-        <button type="submit">Entrar</button>
-    </form>
-    <p>¿No tienes cuenta? <a href="register.php">Registrate aquí</a></p>
+
+    <!-- LOGIN -->
+    <div id="login">
+        <h2>Iniciar sesión</h2>
+        <input type="text" id="login_usuario" placeholder="Usuario" required>
+        <input type="password" id="login_password" placeholder="Contraseña" required>
+        <button onclick="iniciarSesion()">Entrar</button>
+        <p>¿No tienes cuenta? <a href="#" onclick="mostrarRegistro()">Registrate aquí</a></p>
+        <p id="msgLogin"></p>
+    </div>
+
+    <!-- REGISTRO -->
+    <div id="registro">
+        <h2>Registrarse</h2>
+        <input type="text" id="reg_usuario" placeholder="Usuario" required>
+        <input type="password" id="reg_password" placeholder="Contraseña" required>
+        <button onclick="registrar()">Crear cuenta</button>
+        <p>¿Ya tienes cuenta? <a href="#" onclick="mostrarLogin()">Inicia sesión</a></p>
+        <p id="msgRegistro"></p>
+    </div>
+
 </div>
+
+<script>
+// --- Inicializar Base de Datos Fake ---
+if (!localStorage.getItem("usuarios")) {
+    localStorage.setItem("usuarios", JSON.stringify([]));
+}
+
+// Cambiar entre login <-> registro
+function mostrarRegistro() {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("registro").style.display = "block";
+}
+
+function mostrarLogin() {
+    document.getElementById("registro").style.display = "none";
+    document.getElementById("login").style.display = "block";
+}
+
+// --- Registrar ---
+function registrar() {
+    let usuario = document.getElementById("reg_usuario").value.trim();
+    let password = document.getElementById("reg_password").value.trim();
+
+    if (usuario === "" || password === "") {
+        document.getElementById("msgRegistro").textContent = "Completa todos los campos.";
+        return;
+    }
+
+    let usuarios = JSON.parse(localStorage.getItem("usuarios"));
+
+    // Ver si ya existe
+    if (usuarios.some(u => u.usuario === usuario)) {
+        document.getElementById("msgRegistro").textContent = "El usuario ya existe.";
+        return;
+    }
+
+    // Guardar usuario
+    usuarios.push({ usuario, password });
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+
+    document.getElementById("msgRegistro").textContent = "Cuenta creada con éxito.";
+}
+
+// --- Iniciar sesión ---
+function iniciarSesion() {
+    let usuario = document.getElementById("login_usuario").value.trim();
+    let password = document.getElementById("login_password").value.trim();
+
+    let usuarios = JSON.parse(localStorage.getItem("usuarios"));
+
+    let existe = usuarios.find(u => u.usuario === usuario && u.password === password);
+
+    if (existe) {
+        document.getElementById("msgLogin").textContent = "Inicio de sesión exitoso.";
+    } else {
+        document.getElementById("msgLogin").textContent = "Usuario o contraseña incorrectos.";
+    }
+}
+</script>
+
 </body>
 </html>
