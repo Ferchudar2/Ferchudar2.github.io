@@ -1,535 +1,483 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Web_GitHub - Unificado</title>
-    <style>
-        /* --- 1. ESTILOS BASE Y CENTRADO DE CONTENIDO (Forms) --- */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f4f8; /* Fondo suave */
-            margin: 0;
-            padding: 0;
-            /* Ajuste clave para que el contenido se apile debajo del header */
-            display: block; 
-            min-height: auto;
-            /* Añadimos padding superior para compensar el header */
-            padding-top: 60px; 
-        }
-        /* Contenedor general para secciones */
-        .page { display: none; padding: 20px; }
-        .page.active { display: block; }
-
-        /* --- 2. CONTENEDOR PRINCIPAL (Caja Blanca de Login/Registro) --- */
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 90%; /* Ajuste para móviles */
-            margin: 20px auto; /* Centrar y separar del header */
-        }
-
-        h2, h3 { text-align: center; color: #333; }
-
-        /* --- 3. ESTILOS DE FORMULARIO --- */
-        form { display: flex; flex-direction: column; gap: 15px; }
-
-        input, select, button, textarea {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        input:focus, select:focus, textarea:focus { border-color: #3b82f6; outline: none; }
-
-        button, input[type="submit"] {
-            background-color: #3b82f6;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        button:hover, input[type="submit"]:hover { background-color: #2563eb; }
-
-        /* --- 4. ESTILOS PARA LA BARRA DE NAVEGACIÓN (HEADER) --- */
-        #main-header {
-            background-color: #3b82f6; 
-            color: white;
-            padding: 10px 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            position: fixed; /* Lo fija en la parte superior */
-            top: 0;
-            left: 0;
-            z-index: 1000; /* Asegura que esté por encima de todo */
-        }
-
-        .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-
-        .logo { font-size: 1.8rem; margin: 0; }
-
-        nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 12px; }
-
-        nav ul li { display: inline; }
-
-        nav ul li a { color: white; text-decoration: none; padding: 8px 10px; border-radius: 5px; transition: background-color 0.3s; font-weight: 500; }
-
-        nav ul li a:hover { background-color: #2563eb; }
-
-        .user-info { font-weight: bold; color: #ffd700; padding: 5px 10px; }
-
-        /* --- 5. ESTILOS PARA LA TABLA DE PRODUCTOS (productos.html) --- */
-        .table-container { max-width: 1000px; margin: 20px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; border-radius: 8px; overflow: hidden; }
-        th, td { padding: 12px 15px; border: 1px solid #e0e0e0; text-align: left; vertical-align: middle; }
-        th { background-color: #3b82f6; color: white; font-weight: bold; text-transform: uppercase; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        tr:hover { background-color: #f0f0ff; }
-
-        /* Estilos para las imágenes de producto */
-        img { max-width: 60px; max-height: 60px; display: block; margin: 0 auto; border-radius: 5px; object-fit: contain; }
-
-        td:nth-child(4), #acciones-header, td:last-child { text-align: center; }
-
-        /* Extras responsive */
-        @media (min-width: 900px) {
-            .container { max-width: 600px; }
-        }
-
-        /* Estilos pequeños para acciones */
-        .small-btn { padding: 6px 8px; font-size: 0.9rem; margin: 0 4px; }
-
-        /* Mensajes */
-        .msg { max-width: 1000px; margin: 10px auto; text-align: center; }
-
-        /* Estilos específicos para la tabla de usuarios */
-        #usuarios-tbody select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
-        #usuarios-tbody button { padding: 5px 10px; font-size: 0.9rem; }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Web_GitHub - Unificado (Single File)</title>
+<style>
+  /* ---------- Estética moderna ---------- */
+  :root{
+    --bg:#f4f7fb; --card:#ffffff; --primary:#2563eb; --primary-600:#1e40af;
+    --muted:#6b7280; --success:#10b981;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    background:linear-gradient(180deg, var(--bg) 0%, #eef4ff 100%);
+    color:#111827; padding-top:68px;
+  }
+  header#main-header{
+    position:fixed; top:0; left:0; right:0; height:68px;
+    background:linear-gradient(90deg,var(--primary),var(--primary-600));
+    color:white; display:flex; align-items:center; box-shadow:0 6px 18px rgba(16,24,40,0.12); z-index:999;
+  }
+  .header-content{width:100%; max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:0 20px;}
+  .logo{font-weight:700; letter-spacing:0.3px}
+  nav ul{display:flex; gap:10px; margin:0; padding:0; list-style:none; align-items:center}
+  nav a{color:white; text-decoration:none; padding:8px 12px; border-radius:8px; font-weight:600; font-size:0.95rem}
+  nav a:hover{background:rgba(255,255,255,0.12)}
+  .user-info{display:flex; gap:8px; align-items:center}
+  .user-badge{background:rgba(255,255,255,0.12); padding:6px 10px; border-radius:999px; font-weight:600}
+  .btn-ghost{background:transparent; border:1px solid rgba(255,255,255,0.12); color:white; padding:6px 10px; border-radius:8px; cursor:pointer}
+  /* ---------- Layout ---------- */
+  .wrap{max-width:1200px; margin:24px auto; padding:0 20px}
+  .page{display:none}
+  .page.active{display:block}
+  .grid{display:grid; gap:20px}
+  /* ---------- Card / Forms ---------- */
+  .card{background:var(--card); border-radius:12px; padding:18px; box-shadow:0 8px 30px rgba(13,38,76,0.06)}
+  .container{max-width:720px; margin:0 auto}
+  h2{margin:0 0 12px; font-size:1.2rem}
+  form{display:grid; gap:12px}
+  input[type="text"], input[type="password"], input[type="email"], input[type="number"], select, textarea{
+    width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ef; font-size:1rem; background:white;
+  }
+  label{font-size:0.9rem; color:var(--muted)}
+  button.primary{background:var(--primary); color:white; padding:10px 14px; border-radius:10px; border:0; cursor:pointer; font-weight:700}
+  button.danger{background:#ef4444;color:white;padding:8px 10px;border-radius:8px;border:0;cursor:pointer}
+  .muted{color:var(--muted); font-size:0.9rem}
+  .table{width:100%; border-collapse:collapse}
+  th, td{padding:12px 10px; border-bottom:1px solid #f1f5f9; text-align:left}
+  th{font-size:0.85rem; color:var(--muted); text-transform:uppercase}
+  .actions{display:flex; gap:8px; justify-content:center}
+  img.product-img{width:60px;height:60px;object-fit:cover;border-radius:8px; border:1px solid #e6e9ef}
+  .top-row{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px}
+  .help{font-size:0.88rem; color:var(--muted)}
+  .center{display:flex; align-items:center; gap:8px}
+  .small{font-size:0.85rem; padding:6px 8px; border-radius:8px}
+  /* responsive */
+  @media (min-width:900px){
+    .grid-2{grid-template-columns:1fr 360px}
+  }
+  /* mensajes */
+  #msg{max-width:1200px; margin:12px auto; text-align:center; color:var(--muted)}
+  footer{max-width:1200px;margin:24px auto;text-align:center;color:var(--muted);padding:0 20px}
+  input[type=file]{padding:8px}
+</style>
 </head>
 <body>
-    <header id="main-header">
-        <div class="header-content">
-            <h1 class="logo">Web_GitHub</h1>
-            <nav>
-                <ul id="nav-links">
-                    <li><a href="#productos" data-link>Productos</a></li>
-                    <li><a href="#agregar" data-link class="nav-admin">Agregar</a></li>
-                    <li><a href="#registro" data-link>Registro</a></li>
-                    <li><a href="#login" data-link>Iniciar Sesión</a></li>
-                    <li><a href="#admin" data-link class="nav-admin">Usuarios</a></li>
-                </ul>
-            </nav>
-            <div>
-                <span id="user-display" class="user-info" style="display:none"></span>
-                <button id="logout-btn" style="display:none" class="small-btn">Cerrar Sesión</button>
-            </div>
+
+<header id="main-header">
+  <div class="header-content">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="logo">Web_GitHub</div>
+      <nav><ul>
+        <li><a href="#productos" data-link>Productos</a></li>
+        <li><a href="#agregar" data-link class="nav-admin">Agregar</a></li>
+        <li><a href="#registro" data-link>Registro</a></li>
+        <li><a href="#login" data-link>Iniciar Sesión</a></li>
+        <li><a href="#admin" data-link class="nav-admin">Usuarios</a></li>
+      </ul></nav>
+    </div>
+    <div class="user-info">
+      <div id="user-display" class="user-badge" style="display:none"></div>
+      <button id="logout-btn" class="btn-ghost" style="display:none">Cerrar sesión</button>
+    </div>
+  </div>
+</header>
+
+<div id="msg"></div>
+
+<main class="wrap">
+
+  <!-- PRODUCTOS -->
+  <section id="productos" class="page active">
+    <div class="card">
+      <div class="top-row">
+        <div>
+          <h2>Productos disponibles</h2>
+          <div class="help">Mirá los productos. Si sos administrador podés agregar o modificar.</div>
         </div>
-    </header>
-
-    <!-- Mensaje general -->
-    <div id="msg" class="msg"></div>
-
-    <!-- PAGINA: PRODUCTOS -->
-    <section id="productos" class="page">
-        <div class="table-container">
-            <h2>Productos</h2>
-            <p>Listado de productos disponibles.</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Imagen</th>
-                        <th>Nombre</th>
-                        <th>Precio</th>
-                        <th id="acciones-header">Stock</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="productos-tbody"></tbody>
-            </table>
+        <div>
+          <span id="contador-productos" class="muted"></span>
         </div>
-    </section>
+      </div>
 
-    <!-- PAGINA: AGREGAR PRODUCTO -->
-    <section id="agregar" class="page">
-        <div class="container">
-            <h2>Agregar Nuevo Producto</h2>
-            <form id="form-agregar">
-                <input type="text" name="nombre" placeholder="Nombre del producto" required>
-                <input type="number" name="precio" step="0.01" placeholder="Precio" required>
-                <input type="number" name="stock" placeholder="Stock disponible" required>
-                <input type="text" name="imagen_url" placeholder="URL de la imagen (ej: imagen/foto.jpg)" required>
-                <button type="submit">Guardar Producto</button>
-            </form>
-            <p style="text-align:center;"><a href="#productos">Volver a productos</a></p>
-        </div>
-    </section>
+      <div class="card" style="padding:12px">
+        <table class="table" id="productos-table">
+          <thead>
+            <tr><th>Imagen</th><th>Nombre</th><th>Precio</th><th style="text-align:center">Stock</th><th style="text-align:center">Acciones</th></tr>
+          </thead>
+          <tbody id="productos-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
-    <!-- PAGINA: EDITAR PRODUCTO -->
-    <section id="editar" class="page">
-        <div class="container">
-            <h2>Editar Producto</h2>
-            <form id="form-editar">
-                <!-- Inputs se insertan dinámicamente -->
-                <button type="submit">Actualizar Producto</button>
-            </form>
-            <p style="text-align:center;"><a href="#productos">Volver a productos</a></p>
-        </div>
-    </section>
+  <!-- AGREGAR PRODUCTO -->
+  <section id="agregar" class="page">
+    <div class="container">
+      <div class="card">
+        <h2>Agregar nuevo producto</h2>
+        <form id="form-agregar">
+          <label>Nombre</label>
+          <input id="prod-nombre" required placeholder="Ej: Silla de ruedas" />
+          <label>Precio</label>
+          <input id="prod-precio" type="number" step="0.01" required />
+          <label>Stock</label>
+          <input id="prod-stock" type="number" required />
+          <label>Imagen (subila desde tu PC)</label>
+          <input id="prod-img" type="file" accept="image/*" />
+          <div class="center">
+            <button class="primary" type="submit">Guardar producto</button>
+            <button type="button" class="small" onclick="routeTo('#productos')">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
 
-    <!-- PAGINA: LOGIN -->
-    <section id="login" class="page">
-        <div class="container">
-            <h2>Iniciar Sesión</h2>
-            <form id="form-login">
-                <input type="text" name="usuario" placeholder="Nombre de usuario" required>
-                <input type="password" name="password" placeholder="Contraseña" required>
-                <button type="submit">Ingresar</button>
-            </form>
-            <p style="text-align:center;">¿No tienes cuenta? <a href="#registro">Regístrate aquí</a></p>
-        </div>
-    </section>
+  <!-- EDITAR PRODUCTO -->
+  <section id="editar" class="page">
+    <div class="container">
+      <div class="card">
+        <h2>Editar producto</h2>
+        <form id="form-editar">
+          <!-- campos inyectados dinámicamente -->
+          <div class="center" style="margin-top:8px">
+            <button class="primary" type="submit">Actualizar producto</button>
+            <button type="button" class="small" onclick="routeTo('#productos')">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
 
-    <!-- PAGINA: REGISTRO -->
-    <section id="registro" class="page">
-        <div class="container">
-            <h2>Registro</h2>
-            <form id="form-registro">
-                <input type="text" name="usuario" placeholder="Usuario" required>
-                <input type="text" name="nombre" placeholder="Nombre" required>
-                <input type="email" name="email" placeholder="Email (opcional)">
-                <input type="password" name="password" placeholder="Contraseña" required>
-                <label><input type="checkbox" name="is_admin"> Registrar como admin</label>
-                <button type="submit">Registrar</button>
-            </form>
-            <p style="text-align:center;"><a href="#login">Volver a login</a></p>
-        </div>
-    </section>
+  <!-- LOGIN -->
+  <section id="login" class="page">
+    <div class="container">
+      <div class="card">
+        <h2>Iniciar sesión</h2>
+        <form id="form-login">
+          <label>Usuario</label>
+          <input name="usuario" required />
+          <label>Contraseña</label>
+          <input name="password" type="password" required />
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button class="primary" type="submit">Ingresar</button>
+            <button type="button" class="small" onclick="routeTo('#registro')">Crear cuenta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
 
-    <!-- PAGINA: ADMIN USUARIOS -->
-    <section id="admin" class="page">
-        <div class="table-container">
-            <h2>Administración de Usuarios</h2>
-            <p>Aquí puedes ver y cambiar los roles de los usuarios registrados.</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Usuario</th>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Rol Actual</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="usuarios-tbody"></tbody>
-            </table>
-        </div>
-    </section>
+  <!-- REGISTRO -->
+  <section id="registro" class="page">
+    <div class="container">
+      <div class="card">
+        <h2>Registro</h2>
+        <form id="form-registro">
+          <label>Usuario</label>
+          <input id="reg-usuario" required />
+          <label>Nombre</label>
+          <input id="reg-nombre" required />
+          <label>Email (opcional)</label>
+          <input id="reg-email" type="email" />
+          <label>Contraseña</label>
+          <input id="reg-password" type="password" required />
+          <label><input id="reg-isadmin" type="checkbox" /> Registrar como administrador</label>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button class="primary" type="submit">Registrar</button>
+            <button type="button" class="small" onclick="routeTo('#login')">Volver a Iniciar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
 
-    <script>
-        /* ---------- Helpers de localStorage y datos ---------- */
-        const LS_USERS_KEY = 'webgh_usuarios_v1';
-        const LS_PRODUCTS_KEY = 'webgh_productos_v1';
-        const LS_SESSION_KEY = 'webgh_sesion_v1';
+  <!-- ADMIN USUARIOS -->
+  <section id="admin" class="page">
+    <div class="card">
+      <h2>Administración de usuarios</h2>
+      <div class="help">Cambiar roles de usuarios (no puedes cambiar tu propio rol desde aquí).</div>
+      <div style="overflow:auto;margin-top:12px">
+        <table class="table">
+          <thead><tr><th>Usuario</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Acción</th></tr></thead>
+          <tbody id="usuarios-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
-        // Datos de ejemplo si no existen
-        function seedIfEmpty() {
-            if (!localStorage.getItem(LS_USERS_KEY)) {
-                const demoUsers = [
-                    { usuario: 'admin', nombre: 'Admin', email: 'admin@local', password: 'admin', rol: 'admin' },
-                    { usuario: 'juan', nombre: 'Juan Perez', email: 'juan@mail', password: '1234', rol: 'cliente' }
-                ];
-                localStorage.setItem(LS_USERS_KEY, JSON.stringify(demoUsers));
-            }
-            if (!localStorage.getItem(LS_PRODUCTS_KEY)) {
-                const demoProducts = [
-                    { id: 1, nombre: 'Silla de Ruedas', precio: 15000, stock: 5, imagen_url: 'https://via.placeholder.com/80' },
-                    { id: 2, nombre: 'Horse Mount Kit', precio: 25000, stock: 2, imagen_url: 'https://via.placeholder.com/80' }
-                ];
-                localStorage.setItem(LS_PRODUCTS_KEY, JSON.stringify(demoProducts));
-            }
-        }
+</main>
 
-        function getUsuarios() { return JSON.parse(localStorage.getItem(LS_USERS_KEY) || '[]'); }
-        function saveUsuarios(u){ localStorage.setItem(LS_USERS_KEY, JSON.stringify(u)); }
-        function getProductos(){ return JSON.parse(localStorage.getItem(LS_PRODUCTS_KEY) || '[]'); }
-        function saveProductos(p){ localStorage.setItem(LS_PRODUCTS_KEY, JSON.stringify(p)); }
+<footer>Single-file demo • guardado en localStorage • imágenes almacenadas como Base64</footer>
 
-        function setLoggedInUser(user){ localStorage.setItem(LS_SESSION_KEY, JSON.stringify(user)); }
-        function getLoggedInUser(){ return JSON.parse(localStorage.getItem(LS_SESSION_KEY) || 'null'); }
-        function logout(){ localStorage.removeItem(LS_SESSION_KEY); renderNav(); routeTo('#login'); showMsg('Sesión cerrada'); }
+<script>
+/* ---------- Almacenamiento ---------- */
+const LS_USERS = 'gh_users_v1';
+const LS_PRODS = 'gh_products_v1';
+const LS_SESSION = 'gh_session_v1';
 
-        function isAdmin(){ const u = getLoggedInUser(); return u && u.rol === 'admin'; }
+function getUsuarios(){ return JSON.parse(localStorage.getItem(LS_USERS) || '[]'); }
+function saveUsuarios(u){ localStorage.setItem(LS_USERS, JSON.stringify(u)); }
+function getProductos(){ return JSON.parse(localStorage.getItem(LS_PRODS) || '[]'); }
+function saveProductos(p){ localStorage.setItem(LS_PRODS, JSON.stringify(p)); }
+function setSession(u){ localStorage.setItem(LS_SESSION, JSON.stringify(u)); }
+function getSession(){ return JSON.parse(localStorage.getItem(LS_SESSION) || 'null'); }
+function clearSession(){ localStorage.removeItem(LS_SESSION); }
 
-        /* ---------- Render Nav ---------- */
-        function renderNav(){
-            const user = getLoggedInUser();
-            const userDisplay = document.getElementById('user-display');
-            const logoutBtn = document.getElementById('logout-btn');
-            document.querySelectorAll('.nav-admin').forEach(el => el.style.display = (user && user.rol==='admin') ? 'inline' : 'none');
-            if (user) {
-                userDisplay.style.display = 'inline-block';
-                userDisplay.textContent = user.nombre ? user.nombre : user.usuario;
-                logoutBtn.style.display = 'inline-block';
-            } else {
-                userDisplay.style.display = 'none';
-                logoutBtn.style.display = 'none';
-            }
-        }
+/* ---------- Inicial (no admin pre-creado) ---------- */
+function seedIfEmpty(){
+  if(!localStorage.getItem(LS_PRODS)){
+    const demo = [
+      {id:1,nombre:'Silla de ruedas',precio:15000,stock:5, imagen:'https://via.placeholder.com/120'},
+      {id:2,nombre:'Horse Mount Kit',precio:25000,stock:2, imagen:'https://via.placeholder.com/120'}
+    ];
+    saveProductos(demo);
+  }
+}
+seedIfEmpty();
 
-        document.getElementById('logout-btn').addEventListener('click', ()=>{ logout(); });
+/* ---------- Router simple (hash) ---------- */
+function hideAll(){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); }
+function parseHash(){
+  const h = location.hash || '#productos'; const [s,q]=h.split('?'); return {section:s, params: new URLSearchParams(q||'')};
+}
+function routeTo(hash){ location.hash = hash; }
+function router(){
+  const {section, params} = parseHash();
+  hideAll();
+  // default
+  switch(section){
+    case '#agregar':
+      if(!isAdmin()){ showMsg('Acceso denegado. Solo administradores.',4000); routeTo('#login'); return; }
+      document.getElementById('agregar').classList.add('active'); break;
+    case '#editar':
+      if(!isAdmin()){ showMsg('Acceso denegado. Solo administradores.',4000); routeTo('#login'); return; }
+      document.getElementById('editar').classList.add('active');
+      const id = parseInt(params.get('id')); if(!isNaN(id)) loadEditarForm(id); break;
+    case '#login': document.getElementById('login').classList.add('active'); break;
+    case '#registro': document.getElementById('registro').classList.add('active'); break;
+    case '#admin':
+      if(!isAdmin()){ showMsg('Acceso denegado. Solo administradores.',4000); routeTo('#login'); return; }
+      document.getElementById('admin').classList.add('active'); renderUsuarios(); break;
+    case '#productos':
+    default:
+      document.getElementById('productos').classList.add('active'); renderProductos(); break;
+  }
+}
+window.addEventListener('hashchange', router);
 
-        /* ---------- Mensajes ---------- */
-        function showMsg(text, timeout=3000){ const el = document.getElementById('msg'); el.textContent = text; if(timeout>0) setTimeout(()=>{ if(el.textContent===text) el.textContent=''; }, timeout); }
+/* ---------- Mensajes ---------- */
+let msgTimer = null;
+function showMsg(t, timeout=2500){
+  const el = document.getElementById('msg'); el.textContent = t;
+  if(msgTimer) clearTimeout(msgTimer);
+  if(timeout>0) msgTimer = setTimeout(()=>el.textContent='', timeout);
+}
 
-        /* ---------- RENDER PRODUCTOS ---------- */
-        function renderProductos(){
-            const tbody = document.getElementById('productos-tbody');
-            const productos = getProductos();
-            tbody.innerHTML = '';
-            if(productos.length===0){ tbody.innerHTML = '<tr><td colspan="5">No hay productos.</td></tr>'; return; }
-            productos.forEach(p=>{
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><img src="${p.imagen_url}" alt="${p.nombre}"></td>
-                    <td>${p.nombre}</td>
-                    <td>$ ${Number(p.precio).toFixed(2)}</td>
-                    <td style="text-align:center">${p.stock}</td>
-                    <td style="text-align:center">
-                        <button class="small-btn" onclick="irEditar(${p.id})">Editar</button>
-                        <button class="small-btn" onclick="eliminarProducto(${p.id})">Eliminar</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+/* ---------- Nav / Sesión ---------- */
+function renderNav(){
+  const u = getSession();
+  const disp = document.getElementById('user-display');
+  const logout = document.getElementById('logout-btn');
+  document.querySelectorAll('.nav-admin').forEach(el=> el.style.display = (u && u.rol==='admin') ? 'inline' : 'none');
+  if(u){ disp.style.display='inline-block'; disp.textContent = u.nombre || u.usuario; logout.style.display='inline-block'; } else { disp.style.display='none'; logout.style.display='none'; }
+}
+document.getElementById('logout-btn').addEventListener('click', ()=>{
+  clearSession(); renderNav(); routeTo('#login'); showMsg('Sesión cerrada',1500);
+});
 
-        /* ---------- FUNCIONES PRODUCTOS ---------- */
-        document.getElementById('form-agregar').addEventListener('submit', guardarProducto);
-        function guardarProducto(e){
-            e.preventDefault();
-            if(!isAdmin()){ showMsg('Solo administradores pueden agregar productos',4000); routeTo('#login'); return; }
-            const f = e.target;
-            const nombre = f.nombre.value.trim();
-            const precio = parseFloat(f.precio.value);
-            const stock = parseInt(f.stock.value);
-            const imagen_url = f.imagen_url.value.trim() || 'https://via.placeholder.com/80';
-            const productos = getProductos();
-            const id = productos.length? Math.max(...productos.map(x=>x.id))+1 : 1;
-            productos.push({ id, nombre, precio, stock, imagen_url });
-            saveProductos(productos);
-            showMsg('Producto guardado');
-            f.reset();
-            renderProductos();
-            routeTo('#productos');
-        }
+/* ---------- Render Productos ---------- */
+function renderProductos(){
+  const tbody = document.getElementById('productos-tbody'); tbody.innerHTML='';
+  const productos = getProductos();
+  document.getElementById('contador-productos').textContent = `${productos.length} productos`;
+  if(productos.length===0){ tbody.innerHTML = '<tr><td colspan=5 style="text-align:center">No hay productos</td></tr>'; return; }
+  const current = getSession();
+  productos.forEach(p=>{
+    const tr = document.createElement('tr');
+    // imagen: si p.imagen existe (base64 o url), usarla; soporte antiguo p.imagen_url
+    const imgSrc = p.imagen || p.imagen_url || 'https://via.placeholder.com/120';
+    tr.innerHTML = `
+      <td><img class="product-img" src="${imgSrc}" alt="${escapeHtml(p.nombre)}" /></td>
+      <td>${escapeHtml(p.nombre)}</td>
+      <td>$ ${Number(p.precio).toFixed(2)}</td>
+      <td style="text-align:center">${p.stock}</td>
+      <td style="text-align:center" class="actions">
+        ${current && current.rol==='admin' ? `<button class="small" onclick="irEditar(${p.id})">Editar</button><button class="small" onclick="eliminarProducto(${p.id})">Eliminar</button>` : `<button class="small" onclick="comprar(${p.id})">Comprar</button>`}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
-        function eliminarProducto(id){
-            if(!confirm('¿Eliminar producto?')) return;
-            const productos = getProductos().filter(p=>p.id!==id);
-            saveProductos(productos);
-            renderProductos();
-            showMsg('Producto eliminado');
-        }
+/* comprar (simulado) */
+function comprar(id){
+  showMsg('Función de compra simulada (sin backend).',3000);
+}
 
-        function irEditar(id){
-            // Navegar a #editar?id=ID
-            location.hash = `#editar?id=${id}`;
-            router();
-        }
+/* ---------- AGREGAR producto (con file -> base64) ---------- */
+const prodImgInput = document.getElementById('prod-img');
+let prodImgBase64 = ''; // guardará base64 temporal mientras sube
+prodImgInput.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  if(!f.type.startsWith('image/')){ alert('Seleccioná una imagen válida'); prodImgInput.value=''; return; }
+  const r = new FileReader();
+  r.onload = ()=>{ prodImgBase64 = r.result; };
+  r.readAsDataURL(f);
+});
 
-        document.getElementById('form-editar').addEventListener('submit', actualizarProducto);
-        function loadEditarForm(id){
-            const productos = getProductos();
-            const p = productos.find(x=>x.id===id);
-            const form = document.getElementById('form-editar');
-            if(!p){ form.innerHTML = '<p>Producto no encontrado.</p>'; return; }
-            form.innerHTML = `
-                <input type="hidden" name="id" value="${p.id}">
-                <input type="text" name="nombre" value="${p.nombre}" required>
-                <input type="number" step="0.01" name="precio" value="${p.precio}" required>
-                <input type="number" name="stock" value="${p.stock}" required>
-                <input type="text" name="imagen_url" value="${p.imagen_url}" required>
-                <button type="submit">Actualizar Producto</button>
-            `;
-        }
-        function actualizarProducto(e){
-            e.preventDefault();
-            if(!isAdmin()){ showMsg('Solo administradores pueden editar productos',4000); routeTo('#login'); return; }
-            const f = e.target;
-            const id = parseInt(f.id.value);
-            const productos = getProductos();
-            const idx = productos.findIndex(p=>p.id===id);
-            if(idx===-1){ showMsg('Producto no encontrado'); return; }
-            productos[idx].nombre = f.nombre.value.trim();
-            productos[idx].precio = parseFloat(f.precio.value);
-            productos[idx].stock = parseInt(f.stock.value);
-            productos[idx].imagen_url = f.imagen_url.value.trim() || 'https://via.placeholder.com/80';
-            saveProductos(productos);
-            showMsg('Producto actualizado');
-            renderProductos();
-            routeTo('#productos');
-        }
+document.getElementById('form-agregar').addEventListener('submit', (ev)=>{
+  ev.preventDefault();
+  if(!isAdmin()){ showMsg('Solo administradores pueden agregar productos',4000); routeTo('#login'); return; }
+  const nombre = document.getElementById('prod-nombre').value.trim();
+  const precio = parseFloat(document.getElementById('prod-precio').value);
+  const stock = parseInt(document.getElementById('prod-stock').value);
+  if(!nombre || isNaN(precio) || isNaN(stock)){ alert('Completá todos los campos'); return; }
+  if(!prodImgBase64){ alert('Subí una imagen desde tu PC'); return; }
+  const productos = getProductos();
+  const id = productos.length? Math.max(...productos.map(x=>x.id))+1 : 1;
+  productos.push({id, nombre, precio, stock, imagen: prodImgBase64});
+  saveProductos(productos);
+  prodImgBase64 = ''; document.getElementById('prod-img').value='';
+  document.getElementById('form-agregar').reset();
+  showMsg('Producto agregado'); renderProductos(); routeTo('#productos');
+});
 
-        /* ---------- AUTENTICACIÓN / REGISTRO ---------- */
-        document.getElementById('form-login').addEventListener('submit', handleLogin);
-        function handleLogin(e){
-            e.preventDefault();
-            const f = e.target;
-            const usuario = f.usuario.value.trim();
-            const password = f.password.value;
-            const usuarios = getUsuarios();
-            const u = usuarios.find(x=>x.usuario===usuario && x.password===password);
-            if(!u){ showMsg('Credenciales inválidas',4000); return; }
-            setLoggedInUser(u);
-            showMsg('Bienvenido '+(u.nombre||u.usuario));
-            renderNav();
-            routeTo('#productos');
-        }
+/* ---------- EDITAR producto ---------- */
+let editImgBase64 = ''; // si el usuario sube una nueva imagen, se guarda aquí
+function loadEditarForm(id){
+  const productos = getProductos();
+  const p = productos.find(x=>x.id===id);
+  const form = document.getElementById('form-editar');
+  if(!p){ form.innerHTML = '<p>Producto no encontrado.</p>'; return; }
+  // render campos y file input
+  form.innerHTML = `
+    <label>Nombre</label>
+    <input id="edit-nombre" value="${escapeHtmlAttr(p.nombre)}" required />
+    <label>Precio</label>
+    <input id="edit-precio" type="number" step="0.01" value="${Number(p.precio)}" required />
+    <label>Stock</label>
+    <input id="edit-stock" type="number" value="${Number(p.stock)}" required />
+    <label>Imagen actual</label>
+    <div style="display:flex;gap:12px;align-items:center">
+      <img src="${p.imagen || p.imagen_url || 'https://via.placeholder.com/120'}" class="product-img" />
+      <div class="muted">Subi otra imagen para reemplazar (opcional)</div>
+    </div>
+    <label>Cambiar imagen</label>
+    <input id="edit-img" type="file" accept="image/*" />
+    <input type="hidden" id="edit-id" value="${p.id}" />
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="primary" type="submit">Guardar cambios</button>
+      <button type="button" class="small" onclick="routeTo('#productos')">Cancelar</button>
+    </div>
+  `;
+  // vincular listener al input file
+  document.getElementById('edit-img').addEventListener('change', (e)=>{
+    const f = e.target.files[0];
+    if(!f) return;
+    if(!f.type.startsWith('image/')){ alert('Seleccioná una imagen válida'); e.target.value=''; return; }
+    const r = new FileReader();
+    r.onload = ()=>{ editImgBase64 = r.result; };
+    r.readAsDataURL(f);
+  });
+}
 
-        document.getElementById('form-registro').addEventListener('submit', handleRegistro);
-        function handleRegistro(e){
-            e.preventDefault();
-            const f = e.target;
-            const usuario = f.usuario.value.trim();
-            const nombre = f.nombre.value.trim();
-            const email = f.email.value.trim();
-            const password = f.password.value;
-            const is_admin = f.is_admin.checked;
-            const usuarios = getUsuarios();
-            if(usuarios.some(u=>u.usuario===usuario)){ showMsg('Usuario ya existe',4000); return; }
-            usuarios.push({ usuario, nombre, email, password, rol: is_admin? 'admin' : 'cliente' });
-            saveUsuarios(usuarios);
-            showMsg('Usuario registrado correctamente');
-            f.reset();
-            routeTo('#login');
-        }
+document.getElementById('form-editar').addEventListener('submit', (ev)=>{
+  ev.preventDefault();
+  if(!isAdmin()){ showMsg('Solo administradores pueden editar productos',4000); routeTo('#login'); return; }
+  const id = parseInt(document.getElementById('edit-id').value);
+  const nombre = document.getElementById('edit-nombre').value.trim();
+  const precio = parseFloat(document.getElementById('edit-precio').value);
+  const stock = parseInt(document.getElementById('edit-stock').value);
+  if(!nombre || isNaN(precio) || isNaN(stock)){ alert('Completá los campos'); return; }
+  const productos = getProductos();
+  const idx = productos.findIndex(x=>x.id===id);
+  if(idx===-1){ alert('No encontrado'); return; }
+  productos[idx].nombre = nombre;
+  productos[idx].precio = precio;
+  productos[idx].stock = stock;
+  if(editImgBase64){ productos[idx].imagen = editImgBase64; editImgBase64 = ''; document.getElementById('edit-img').value=''; }
+  saveProductos(productos);
+  showMsg('Producto actualizado'); renderProductos(); routeTo('#productos');
+});
 
-        /* ---------- ADMIN USUARIOS ---------- */
-        function renderUsuarios(){
-            const usuarios = getUsuarios();
-            const tbody = document.getElementById('usuarios-tbody');
-            tbody.innerHTML = '';
-            if(usuarios.length===0){ tbody.innerHTML = '<tr><td colspan="5">No hay usuarios registrados.</td></tr>'; return; }
-            const current = getLoggedInUser();
-            usuarios.forEach(usuario=>{
-                if(current && usuario.usuario===current.usuario) return; // no mostrar al mismo
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${usuario.usuario}</td>
-                    <td>${usuario.nombre}</td>
-                    <td>${usuario.email||'N/A'}</td>
-                    <td>
-                        <select id="rol-${usuario.usuario}">
-                            <option value="cliente" ${usuario.rol==='cliente'? 'selected':''}>Cliente</option>
-                            <option value="admin" ${usuario.rol==='admin'? 'selected':''}>Administrador</option>
-                        </select>
-                    </td>
-                    <td style="text-align:center"><button class="small-btn" onclick="cambiarRol('${usuario.usuario}')">Guardar</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+/* ---------- Eliminar ---------- */
+function eliminarProducto(id){
+  if(!confirm('Eliminar producto?')) return;
+  const productos = getProductos().filter(p=>p.id!==id);
+  saveProductos(productos); renderProductos(); showMsg('Producto eliminado',2000);
+}
 
-        function cambiarRol(username){
-            if(!isAdmin()){ showMsg('Acceso denegado'); return; }
-            const select = document.getElementById(`rol-${username}`);
-            if(!select) return;
-            const usuarios = getUsuarios();
-            const idx = usuarios.findIndex(u=>u.usuario===username);
-            if(idx===-1) return;
-            usuarios[idx].rol = select.value;
-            saveUsuarios(usuarios);
-            showMsg('Rol actualizado');
-            renderUsuarios();
-            renderNav();
-        }
+/* ---------- Edit redirect ---------- */
+function irEditar(id){ routeTo(`#editar?id=${id}`); router(); }
 
-        /* ---------- RUTEO simple con anclas ---------- */
-        function parseHash(){
-            const h = location.hash || '#productos';
-            // soporte para #editar?id=3
-            const [section, query] = h.split('?');
-            const params = new URLSearchParams(query || '');
-            return { section: section, params };
-        }
+/* ---------- Autenticación / Registro ---------- */
+document.getElementById('form-registro').addEventListener('submit',(ev)=>{
+  ev.preventDefault();
+  const usuario = document.getElementById('reg-usuario').value.trim();
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const isadmin = document.getElementById('reg-isadmin').checked;
+  if(!usuario || !nombre || !password){ alert('Completá los campos'); return; }
+  const usuarios = getUsuarios();
+  if(usuarios.some(u=>u.usuario===usuario)){ showMsg('Usuario ya existe',3000); return; }
+  usuarios.push({ usuario, nombre, email, password, rol: isadmin ? 'admin' : 'cliente' });
+  saveUsuarios(usuarios);
+  showMsg('Usuario registrado. Iniciá sesión.',3000); routeTo('#login');
+});
 
-        function routeTo(hash){ location.hash = hash; }
+document.getElementById('form-login').addEventListener('submit',(ev)=>{
+  ev.preventDefault();
+  const usuario = ev.target.usuario.value.trim();
+  const password = ev.target.password.value;
+  const usuarios = getUsuarios();
+  const u = usuarios.find(x=>x.usuario===usuario && x.password===password);
+  if(!u){ showMsg('Credenciales inválidas',3500); return; }
+  setSession(u); renderNav(); showMsg('Bienvenido '+(u.nombre||u.usuario),2000); routeTo('#productos');
+});
 
-        function hideAllPages(){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); }
+/* ---------- Admin: render usuarios y cambio de rol ---------- */
+function renderUsuarios(){
+  const usuarios = getUsuarios(); const tbody = document.getElementById('usuarios-tbody'); tbody.innerHTML='';
+  const current = getSession();
+  if(usuarios.length===0){ tbody.innerHTML='<tr><td colspan=5>No hay usuarios</td></tr>'; return; }
+  usuarios.forEach(u=>{
+    if(current && u.usuario===current.usuario) return; // no mostrar a sí mismo
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(u.usuario)}</td><td>${escapeHtml(u.nombre)}</td><td>${escapeHtml(u.email||'')}</td>
+      <td><select id="rol-${u.usuario}"><option value="cliente" ${u.rol==='cliente'?'selected':''}>Cliente</option><option value="admin" ${u.rol==='admin'?'selected':''}>Admin</option></select></td>
+      <td style="text-align:center"><button class="small" onclick="cambiarRol('${u.usuario}')">Guardar</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
 
-        function router(){
-            const { section, params } = parseHash();
-            hideAllPages();
-            switch(section){
-                case '#agregar':
-                    document.getElementById('agregar').classList.add('active');
-                    break;
-                case '#editar':
-                    if(!isAdmin()){ showMsg('Acceso denegado. Solo administradores.'); routeTo('#login'); return; }
-                    document.getElementById('editar').classList.add('active');
-                    const id = parseInt(params.get('id'));
-                    if(!isNaN(id)) loadEditarForm(id);
-                    break;
-                case '#login': document.getElementById('login').classList.add('active'); break;
-                case '#registro': document.getElementById('registro').classList.add('active'); break;
-                case '#admin':
-                    if(!isAdmin()){ showMsg('Acceso denegado. Solo administradores.'); routeTo('#login'); return; }
-                    document.getElementById('admin').classList.add('active');
-                    renderUsuarios();
-                    break;
-                case '#productos':
-                default:
-                    document.getElementById('productos').classList.add('active');
-                    renderProductos();
-                    break;
-            }
-        }
+function cambiarRol(username){
+  if(!isAdmin()){ showMsg('Acceso denegado',3000); return; }
+  const sel = document.getElementById(`rol-${username}`);
+  if(!sel) return;
+  const usuarios = getUsuarios(); const idx = usuarios.findIndex(x=>x.usuario===username);
+  if(idx===-1) return;
+  usuarios[idx].rol = sel.value; saveUsuarios(usuarios); showMsg('Rol actualizado',2000);
+}
 
-        window.addEventListener('hashchange', router);
+/* ---------- Helpers ---------- */
+function isAdmin(){ const s = getSession(); return s && s.rol==='admin'; }
+function escapeHtml(str){ if(!str) return ''; return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+function escapeHtmlAttr(str){ return escapeHtml(str).replaceAll("'", "&#39;"); }
 
-        /* ---------- Inicialización ---------- */
-        function init(){
-            seedIfEmpty();
-            renderNav();
-            // enlazar clicks de nav para forzar router
-            document.querySelectorAll('[data-link]').forEach(a=>a.addEventListener('click', (e)=>{ setTimeout(()=>router(), 50); }));
-            // Si hash es #editar?id= se llama load
-            router();
-        }
+/* ---------- Init ---------- */
+document.querySelectorAll('[data-link]').forEach(a=>a.addEventListener('click', ()=>setTimeout(router,60)));
+function init(){
+  renderNav(); router(); renderProductos();
+}
+init();
 
-        // Exponer funciones al scope global que se usan en HTML inline
-        window.getLoggedInUser = getLoggedInUser;
-        window.isAdmin = isAdmin;
-        window.getProductos = getProductos;
-        window.guardarProducto = guardarProducto;
-        window.actualizarProducto = actualizarProducto;
-        window.cambiarRol = cambiarRol;
-        window.irEditar = irEditar;
-        window.eliminarProducto = eliminarProducto;
-
-        init();
-    </script>
+</script>
 </body>
 </html>
-
-<!-- === Sistema actualizado: soporte de subida de imágenes === -->
-<style>
-input[type=file]{padding:10px;margin-top:10px;margin-bottom:15px;border:1px solid #ccc;border-radius:5px;background:white;}
-img.product-img{max-width:60px;max-height:60px;border-radius:6px;object-fit:contain;}
-</style>
-<script>
-function fileToBase64(file,callback){const r=new FileReader();r.onload=()=>callback(r.result);r.readAsDataURL(file);} 
-
-function agregarProducto(e){e.preventDefault();const nombre=document.getElementById('prod-nombre').value;const precio=parseFloat(document.getElementById('prod-precio').value);const stock=parseInt(document.getElementById('prod-stock').value);const file=document.getElementById('prod-img').files[0];if(!file){alert('Subí una imagen.');return;}fileToBase64(file,(base64)=>{let productos=getProductos();const id=Date.now();productos.push({id,nombre,precio,stock,imagen:base64});localStorage.setItem('productos',JSON.stringify(productos));alert('Producto agregado.');window.location.href='#productos';});}
-
-function guardarEdicion(e,id){e.preventDefault();let productos=getProductos();let p=productos.find(x=>x.id==id);p.nombre=document.getElementById('edit-nombre').value;p.precio=parseFloat(document.getElementById('edit-precio').value);p.stock=parseInt(document.getElementById('edit-stock').value);const file=document.getElementById('edit-img').files[0];if(file){fileToBase64(file,(b)=>{p.imagen=b;localStorage.setItem('productos',JSON.stringify(productos));alert('Producto actualizado.');window.location.href='#productos';});}else{localStorage.setItem('productos',JSON.stringify(productos));alert('Producto actualizado.');window.location.href='#productos';}}
-
-function renderProductos(){const productos=getProductos();const tbody=document.getElementById('productos-tbody');tbody.innerHTML='';if(productos.length===0){tbody.innerHTML='<tr><td colspan=5>No hay productos.</td></tr>';return;}productos.forEach(p=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${p.nombre}</td><td>$${p.precio}</td><td>${p.stock}</td><td><img class='product-img' src='${p.imagen}'></td><td><button onclick="cargarEdicion(${p.id})">Editar</button> <button onclick="eliminarProducto(${p.id})">Eliminar</button></td>`;tbody.appendChild(tr);});}
-</script>
-
