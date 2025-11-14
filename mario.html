@@ -517,3 +517,19 @@
     </script>
 </body>
 </html>
+
+<!-- === Sistema actualizado: soporte de subida de imágenes === -->
+<style>
+input[type=file]{padding:10px;margin-top:10px;margin-bottom:15px;border:1px solid #ccc;border-radius:5px;background:white;}
+img.product-img{max-width:60px;max-height:60px;border-radius:6px;object-fit:contain;}
+</style>
+<script>
+function fileToBase64(file,callback){const r=new FileReader();r.onload=()=>callback(r.result);r.readAsDataURL(file);} 
+
+function agregarProducto(e){e.preventDefault();const nombre=document.getElementById('prod-nombre').value;const precio=parseFloat(document.getElementById('prod-precio').value);const stock=parseInt(document.getElementById('prod-stock').value);const file=document.getElementById('prod-img').files[0];if(!file){alert('Subí una imagen.');return;}fileToBase64(file,(base64)=>{let productos=getProductos();const id=Date.now();productos.push({id,nombre,precio,stock,imagen:base64});localStorage.setItem('productos',JSON.stringify(productos));alert('Producto agregado.');window.location.href='#productos';});}
+
+function guardarEdicion(e,id){e.preventDefault();let productos=getProductos();let p=productos.find(x=>x.id==id);p.nombre=document.getElementById('edit-nombre').value;p.precio=parseFloat(document.getElementById('edit-precio').value);p.stock=parseInt(document.getElementById('edit-stock').value);const file=document.getElementById('edit-img').files[0];if(file){fileToBase64(file,(b)=>{p.imagen=b;localStorage.setItem('productos',JSON.stringify(productos));alert('Producto actualizado.');window.location.href='#productos';});}else{localStorage.setItem('productos',JSON.stringify(productos));alert('Producto actualizado.');window.location.href='#productos';}}
+
+function renderProductos(){const productos=getProductos();const tbody=document.getElementById('productos-tbody');tbody.innerHTML='';if(productos.length===0){tbody.innerHTML='<tr><td colspan=5>No hay productos.</td></tr>';return;}productos.forEach(p=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${p.nombre}</td><td>$${p.precio}</td><td>${p.stock}</td><td><img class='product-img' src='${p.imagen}'></td><td><button onclick="cargarEdicion(${p.id})">Editar</button> <button onclick="eliminarProducto(${p.id})">Eliminar</button></td>`;tbody.appendChild(tr);});}
+</script>
+
