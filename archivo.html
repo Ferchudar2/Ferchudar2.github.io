@@ -1,151 +1,482 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Iniciar sesión / Registro</title>
+<meta charset="utf-8" />
+<title>Tienda single-file (Roles + Historial)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-body {
-    font-family: Arial;
-    background: #0f2027;
-    background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-.container {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 30px;
-    border-radius: 12px;
-    width: 350px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-}
-h2 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-input[type="text"], input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    margin: 6px 0;
-    border: none;
-    border-radius: 5px;
-    background-color: #1b1b1b;
-    color: white;
-}
-button {
-    width: 100%;
-    padding: 10px;
-    background: #00bcd4;
-    border: none;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-}
-button:hover {
-    background: #0097a7;
-}
-p {
-    margin-top: 10px;
-    text-align: center;
-    color: #00e676;
-}
-a {
-    color: #00bcd4;
-    text-decoration: none;
-}
-a:hover {
-    text-decoration: underline;
-}
-#registro { display: none; }
+/* --- Estilos (basados en tu diseño) --- */
+:root{--bg:#0097A7;--panel:#0f141b;--accent:#00bcd4;--muted:#b2ebf2}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#fff;min-height:100vh}
+.center-wrap{max-width:1100px;margin:30px auto;padding:20px}
+.container{background:var(--panel);padding:24px;border-radius:12px;box-shadow:0 0 25px rgba(0,0,0,.4)}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.header h2{margin:0}
+.header a{color:var(--accent);text-decoration:none;margin-left:10px}
+.notice{padding:10px;border-radius:8px;margin-bottom:14px}
+.success{background:#004d40;color:#00e676}
+.error{background:#5c0000;color:#ff8a80}
+.form-box{max-width:420px;margin:12px auto;background:rgba(0,0,0,.45);padding:18px;border-radius:10px}
+.form-box input,.form-box select,.form-box button{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:0;background:#1b1b1b;color:#fff}
+.form-box button{background:var(--accent);font-weight:bold;cursor:pointer}
+.form-box button.secondary{background:#555}
+.flex-row{display:flex;gap:10px}
+.flex-row > *{flex:1}
+.product-card{background:#101820;border:1px solid var(--accent);border-radius:10px;display:inline-block;width:240px;padding:12px;margin:10px;vertical-align:top}
+.product-card img{width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:8px}
+.product-card h4{color:#00e5ff;margin:6px 0}
+.product-card p{margin:6px 0;color:var(--muted)}
+.product-card button{width:100%;padding:8px;border-radius:8px;border:0;background:var(--accent);font-weight:bold;cursor:pointer}
+.small{font-size:13px;color:#cde}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.controls{display:flex;gap:8px;align-items:center}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.12);padding:8px;border-radius:8px;cursor:pointer}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:8px;border-bottom:1px solid rgba(255,255,255,.05);text-align:left}
+.right{margin-left:auto}
+.add-button{background:#00e676;color:#000;padding:8px;border-radius:8px;cursor:pointer;font-weight:bold}
+.hidden{display:none}
+kbd{background:#222;padding:2px 6px;border-radius:4px}
+.footer-note{color:#cde;margin-top:10px;font-size:13px}
 </style>
 </head>
 <body>
+<div class="center-wrap">
 
-<div class="container">
+  <!-- LOGIN -->
+  <div id="view-login" class="form-box container">
+    <h2 style="text-align:center">Iniciar sesión</h2>
+    <input id="login_user" placeholder="Usuario" />
+    <input id="login_pass" type="password" placeholder="Contraseña" />
+    <button id="btn-login">Entrar</button>
+    <p style="text-align:center">¿No tienes cuenta? <a href="#" id="link-to-register">Registrate aquí</a></p>
+    <p id="msg-login" class="small"></p>
+  </div>
 
-    <!-- LOGIN -->
-    <div id="login">
-        <h2>Iniciar sesión</h2>
-        <input type="text" id="login_usuario" placeholder="Usuario" required>
-        <input type="password" id="login_password" placeholder="Contraseña" required>
-        <button onclick="iniciarSesion()">Entrar</button>
-        <p>¿No tienes cuenta? <a href="#" onclick="mostrarRegistro()">Registrate aquí</a></p>
-        <p id="msgLogin"></p>
+  <!-- REGISTRO -->
+  <div id="view-register" class="form-box container hidden">
+    <h2 style="text-align:center">Registro</h2>
+    <input id="reg_user" placeholder="Usuario" />
+    <input id="reg_pass" type="password" placeholder="Contraseña" />
+    <label class="small" style="margin-top:6px">Rol</label>
+    <select id="reg_role">
+      <option value="user">Usuario</option>
+      <option value="admin">Administrador</option>
+    </select>
+    <button id="btn-register">Crear cuenta y entrar</button>
+    <p style="text-align:center">¿Ya tienes cuenta? <a href="#" id="link-to-login">Inicia sesión</a></p>
+    <p id="msg-register" class="small"></p>
+  </div>
+
+  <!-- TIENDA / PANEL -->
+  <div id="view-shop" class="container hidden">
+    <div class="header">
+      <h2>🛒 Tienda Online</h2>
+      <div class="controls">
+        <span id="ui-welcome" class="small"></span>
+        <a href="#" id="link-logout">Cerrar sesión</a>
+      </div>
     </div>
 
-    <!-- REGISTRO -->
-    <div id="registro">
-        <h2>Registrarse</h2>
-        <input type="text" id="reg_usuario" placeholder="Usuario" required>
-        <input type="password" id="reg_password" placeholder="Contraseña" required>
-        <button onclick="registrar()">Crear cuenta</button>
-        <p>¿Ya tienes cuenta? <a href="#" onclick="mostrarLogin()">Inicia sesión</a></p>
-        <p id="msgRegistro"></p>
+    <div id="global-msg"></div>
+
+    <!-- Admin controls -->
+    <div id="admin-controls" class="hidden" style="margin-bottom:12px">
+      <div class="row" style="align-items:center">
+        <button class="add-button" id="btn-toggle-add">➕ Agregar Producto</button>
+        <button class="btn-ghost" id="btn-view-all-purchases">Ver historial de compras (TODAS)</button>
+        <button class="btn-ghost" id="btn-clear-sample">Reiniciar datos (pruebas)</button>
+      </div>
     </div>
+
+    <!-- Admin: Agregar producto -->
+    <div id="admin-add" class="form-box hidden" style="max-width:650px">
+      <h3>Agregar / Editar producto</h3>
+      <input id="prod_nombre" placeholder="Nombre" />
+      <div class="flex-row">
+        <input id="prod_precio" type="number" placeholder="Precio" />
+        <input id="prod_stock" type="number" placeholder="Stock" />
+      </div>
+      <input id="prod_img" type="file" accept="image/*" />
+      <div style="display:flex;gap:8px">
+        <button id="btn-save-product">Guardar producto</button>
+        <button id="btn-cancel-product" class="secondary">Cancelar</button>
+      </div>
+      <p id="prod-msg" class="small"></p>
+    </div>
+
+    <!-- Productos -->
+    <div id="productos" class="row"></div>
+
+    <!-- Historial personal -->
+    <div id="historial-user" class="container hidden" style="margin-top:18px">
+      <h3>📜 Mi historial de compras</h3>
+      <table class="table" id="table-historial-user"><thead><tr><th>Fecha</th><th>Producto</th><th>Precio</th><th>Cantidad</th></tr></thead><tbody></tbody></table>
+      <p class="footer-note">Se guarda localmente solo en este navegador.</p>
+    </div>
+
+    <!-- Historial global (admin) -->
+    <div id="historial-all" class="container hidden" style="margin-top:18px">
+      <h3>📊 Historial completo (admin)</h3>
+      <table class="table" id="table-historial-all"><thead><tr><th>Fecha</th><th>Usuario</th><th>Producto</th><th>Precio</th><th>Cantidad</th></tr></thead><tbody></tbody></table>
+    </div>
+
+  </div>
 
 </div>
 
 <script>
-// --- Inicializar Base de Datos Fake ---
-if (!localStorage.getItem("usuarios")) {
-    localStorage.setItem("usuarios", JSON.stringify([]));
+/* -------------------------
+   UTIL y DB (LocalStorage)
+   -------------------------*/
+const DB = {
+  usuariosKey: 'tienda_usuarios_v1',
+  productosKey: 'tienda_productos_v1',
+  sesionKey: 'tienda_sesion_v1',
+  comprasKey: 'tienda_compras_v1' // compras globales
+};
+
+function dbGet(k){ const s = localStorage.getItem(k); return s ? JSON.parse(s) : null }
+function dbSet(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+
+/* Inicializa arrays si no existen */
+if (!dbGet(DB.usuariosKey)) dbSet(DB.usuariosKey, []);
+if (!dbGet(DB.productosKey)) {
+  /* productos de ejemplo para pruebas */
+  dbSet(DB.productosKey, [
+    { id: Date.now()+1, nombre:'Camiseta', precio:1200, stock:5, imagen:'' },
+    { id: Date.now()+2, nombre:'Gorra', precio:450, stock:8, imagen:'' }
+  ]);
+}
+if (!dbGet(DB.comprasKey)) dbSet(DB.comprasKey, []);
+
+/* -------------------------
+   ELEMENTS
+   -------------------------*/
+const viewLogin = document.getElementById('view-login');
+const viewRegister = document.getElementById('view-register');
+const viewShop = document.getElementById('view-shop');
+
+const linkToRegister = document.getElementById('link-to-register');
+const linkToLogin = document.getElementById('link-to-login');
+const btnLogin = document.getElementById('btn-login');
+const btnRegister = document.getElementById('btn-register');
+const linkLogout = document.getElementById('link-logout');
+const uiWelcome = document.getElementById('ui-welcome');
+const globalMsg = document.getElementById('global-msg');
+
+const adminControls = document.getElementById('admin-controls');
+const adminAdd = document.getElementById('admin-add');
+const btnToggleAdd = document.getElementById('btn-toggle-add');
+const btnSaveProduct = document.getElementById('btn-save-product');
+const btnCancelProduct = document.getElementById('btn-cancel-product');
+const productosDiv = document.getElementById('productos');
+
+const histUserDiv = document.getElementById('historial-user');
+const histAllDiv = document.getElementById('historial-all');
+const tableHistUser = document.querySelector('#table-historial-user tbody');
+const tableHistAll = document.querySelector('#table-historial-all tbody');
+
+const btnViewAllPurchases = document.getElementById('btn-view-all-purchases');
+const btnClearSample = document.getElementById('btn-clear-sample');
+
+/* Inputs */
+const loginUser = document.getElementById('login_user');
+const loginPass = document.getElementById('login_pass');
+const regUser = document.getElementById('reg_user');
+const regPass = document.getElementById('reg_pass');
+const regRole = document.getElementById('reg_role');
+
+const prodNombre = document.getElementById('prod_nombre');
+const prodPrecio = document.getElementById('prod_precio');
+const prodStock = document.getElementById('prod_stock');
+const prodImg = document.getElementById('prod_img');
+const prodMsg = document.getElementById('prod-msg');
+const msgLogin = document.getElementById('msg-login');
+const msgRegister = document.getElementById('msg-register');
+
+/* -------------------------
+   FUNCIONES DE SESIÓN
+   -------------------------*/
+function getSesion(){ return dbGet(DB.sesionKey) } // username o null
+function setSesion(user){ dbSet(DB.sesionKey, user) }
+function clearSesion(){ localStorage.removeItem(DB.sesionKey) }
+
+/* -------------------------
+   REGISTRO / LOGIN
+   -------------------------*/
+btnRegister.addEventListener('click', ()=>{
+  const user = (regUser.value||'').trim();
+  const pass = (regPass.value||'').trim();
+  const role = regRole.value||'user';
+  msgRegister.textContent = '';
+  if (!user || !pass){ msgRegister.textContent = 'Completa usuario y contraseña.'; return; }
+
+  const usuarios = dbGet(DB.usuariosKey);
+  if (usuarios.some(u=>u.user === user)){
+    msgRegister.textContent = 'Ese usuario ya existe.';
+    return;
+  }
+
+  usuarios.push({ user, pass, role, compras: [] });
+  dbSet(DB.usuariosKey, usuarios);
+
+  // Auto-login y mostrar tienda
+  setSesion(user);
+  regUser.value=''; regPass.value='';
+  showShop();
+});
+
+btnLogin.addEventListener('click', ()=>{
+  const user = (loginUser.value||'').trim();
+  const pass = (loginPass.value||'').trim();
+  msgLogin.textContent = '';
+  if (!user || !pass){ msgLogin.textContent = 'Completa usuario y contraseña.'; return; }
+
+  const usuarios = dbGet(DB.usuariosKey);
+  const u = usuarios.find(x => x.user===user && x.pass===pass);
+  if (!u){ msgLogin.textContent = 'Usuario o contraseña incorrectos.'; return; }
+
+  setSesion(user);
+  loginUser.value=''; loginPass.value='';
+  showShop();
+});
+
+/* Navegación */
+linkToRegister.addEventListener('click', (e)=>{ e.preventDefault(); viewLogin.classList.add('hidden'); viewRegister.classList.remove('hidden'); });
+linkToLogin.addEventListener('click', (e)=>{ e.preventDefault(); viewRegister.classList.add('hidden'); viewLogin.classList.remove('hidden'); });
+linkLogout.addEventListener('click', (e)=>{ e.preventDefault(); clearSesion(); window.location.reload(); });
+
+/* -------------------------
+   Mostrar tienda / UI
+   -------------------------*/
+function showShop(){
+  viewLogin.classList.add('hidden'); viewRegister.classList.add('hidden'); viewShop.classList.remove('hidden');
+  const user = getSesion();
+  if (!user) { /* no session -> mostrar login */
+    viewShop.classList.add('hidden'); viewLogin.classList.remove('hidden'); return;
+  }
+  const usuarios = dbGet(DB.usuariosKey);
+  const me = usuarios.find(u=>u.user===user);
+  uiWelcome.textContent = `Hola, ${me.user} (${me.role})`;
+  // mostrar admin controls si corresponde
+  if (me.role === 'admin'){ adminControls.classList.remove('hidden'); } else { adminControls.classList.add('hidden'); }
+  // mostrar historial personal
+  histUserDiv.classList.remove('hidden');
+  renderProductos();
+  renderHistorialUsuario(me);
 }
 
-// Cambiar entre login <-> registro
-function mostrarRegistro() {
-    document.getElementById("login").style.display = "none";
-    document.getElementById("registro").style.display = "block";
+/* Si ya hay sesión guardada -> auto mostrar tienda */
+if (getSesion()) showShop();
+
+/* -------------------------
+   PRODUCTOS (CRUD en localStorage)
+   -------------------------*/
+function getProductos(){ return dbGet(DB.productosKey) || [] }
+function setProductos(p){ dbSet(DB.productosKey, p) }
+
+/* Toggle admin add */
+btnToggleAdd.addEventListener('click', ()=>{ adminAdd.classList.toggle('hidden'); prodMsg.textContent=''; clearProductForm(); });
+
+btnCancelProduct.addEventListener('click', ()=>{ adminAdd.classList.add('hidden'); clearProductForm(); });
+
+function clearProductForm(){
+  prodNombre.value=''; prodPrecio.value=''; prodStock.value=''; prodImg.value=''; prodMsg.textContent='';
 }
 
-function mostrarLogin() {
-    document.getElementById("registro").style.display = "none";
-    document.getElementById("login").style.display = "block";
-}
+/* Guardar producto (admin) */
+btnSaveProduct.addEventListener('click', ()=>{
+  const nombre = (prodNombre.value||'').trim();
+  const precio = parseFloat(prodPrecio.value||0);
+  const stock = parseInt(prodStock.value||0,10);
+  const file = prodImg.files[0];
 
-// --- Registrar ---
-function registrar() {
-    let usuario = document.getElementById("reg_usuario").value.trim();
-    let password = document.getElementById("reg_password").value.trim();
+  if (!nombre || !precio || !Number.isFinite(precio) || !stock){ prodMsg.textContent='Completa nombre, precio y stock.'; return; }
 
-    if (usuario === "" || password === "") {
-        document.getElementById("msgRegistro").textContent = "Completa todos los campos.";
-        return;
-    }
+  // Función que inserta el producto con imagenBase64 si se subió
+  const doSave = (imgData)=>{
+    const productos = getProductos();
+    const id = Date.now();
+    productos.push({ id, nombre, precio, stock, imagen: imgData || '' });
+    setProductos(productos);
+    prodMsg.textContent = '✔ Producto guardado';
+    adminAdd.classList.add('hidden');
+    clearProductForm();
+    renderProductos();
+  };
 
-    let usuarios = JSON.parse(localStorage.getItem("usuarios"));
+  if (file){
+    const fr = new FileReader();
+    fr.onload = ()=> doSave(fr.result);
+    fr.readAsDataURL(file);
+  } else {
+    doSave('');
+  }
+});
 
-    // Ver si ya existe
-    if (usuarios.some(u => u.usuario === usuario)) {
-        document.getElementById("msgRegistro").textContent = "El usuario ya existe.";
-        return;
-    }
+/* Render productos */
+function renderProductos(){
+  const productos = getProductos();
+  productosDiv.innerHTML = '';
+  if (!productos.length){ productosDiv.innerHTML = '<p class="small">No hay productos. (Admin: agrega alguno)</p>'; return; }
 
-    // Guardar usuario
-    usuarios.push({ usuario, password });
-    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+  productos.forEach(p=>{
+    const card = document.createElement('div'); card.className='product-card';
+    const img = document.createElement('img'); img.src = p.imagen || ('https://via.placeholder.com/240x150/101820/FFFFFF?text=Sin+Imagen');
+    const h4 = document.createElement('h4'); h4.textContent = p.nombre;
+    const price = document.createElement('p'); price.textContent = `💲 Precio: $${Number(p.precio)}`;
+    const stock = document.createElement('p'); stock.textContent = `📦 Stock: ${p.stock}`;
+    card.appendChild(img); card.appendChild(h4); card.appendChild(price); card.appendChild(stock);
 
-    document.getElementById("msgRegistro").textContent = "Cuenta creada con éxito.";
-}
-
-// --- Iniciar sesión ---
-function iniciarSesion() {
-    let usuario = document.getElementById("login_usuario").value.trim();
-    let password = document.getElementById("login_password").value.trim();
-
-    let usuarios = JSON.parse(localStorage.getItem("usuarios"));
-
-    let existe = usuarios.find(u => u.usuario === usuario && u.password === password);
-
-    if (existe) {
-        document.getElementById("msgLogin").textContent = "Inicio de sesión exitoso.";
+    const sesion = getSesion();
+    const usuarios = dbGet(DB.usuariosKey);
+    const me = usuarios.find(u=>u.user===sesion);
+    if (p.stock > 0){
+      const buyBtn = document.createElement('button'); buyBtn.textContent='Comprar';
+      buyBtn.onclick = ()=> comprarProducto(p.id);
+      card.appendChild(buyBtn);
     } else {
-        document.getElementById("msgLogin").textContent = "Usuario o contraseña incorrectos.";
+      const btn = document.createElement('button'); btn.textContent='Sin stock'; btn.disabled=true; btn.style.background='#555';
+      card.appendChild(btn);
     }
-}
-</script>
 
+    // Si admin -> mostrar botón eliminar
+    if (me && me.role === 'admin'){
+      const del = document.createElement('button'); del.textContent='Eliminar'; del.style.marginTop='8px'; del.style.background='#ff5252';
+      del.onclick = ()=> { if(confirm('Eliminar producto?')){ eliminarProducto(p.id) } };
+      card.appendChild(del);
+    }
+
+    productosDiv.appendChild(card);
+  });
+}
+
+/* Eliminar */
+function eliminarProducto(id){
+  const productos = getProductos().filter(p=>p.id !== id);
+  setProductos(productos);
+  renderProductos();
+}
+
+/* -------------------------
+   COMPRAS
+   -------------------------*/
+function comprarProducto(id){
+  const productos = getProductos();
+  const p = productos.find(x=>x.id===id);
+  if (!p) return;
+  if (p.stock <= 0){ showGlobalMsg('No hay stock', 'error'); return; }
+
+  // Reducir stock
+  p.stock = p.stock - 1;
+  setProductos(productos);
+  renderProductos();
+
+  // Registrar compra global
+  const compras = dbGet(DB.comprasKey) || [];
+  const fecha = new Date().toISOString();
+  const sesion = getSesion();
+  compras.push({ fecha, usuario: sesion, productoId: p.id, nombre: p.nombre, precio: p.precio, cantidad: 1 });
+  dbSet(DB.comprasKey, compras);
+
+  // Registrar compra en usuario
+  const usuarios = dbGet(DB.usuariosKey);
+  const me = usuarios.find(u=>u.user===sesion);
+  if (me){
+    me.compras = me.compras || [];
+    me.compras.push({ fecha, productoId: p.id, nombre: p.nombre, precio: p.precio, cantidad: 1 });
+    dbSet(DB.usuariosKey, usuarios);
+  }
+
+  showGlobalMsg(`✅ Has comprado 1 unidad de ${p.nombre}`, 'success');
+  renderHistorialUsuario(me);
+}
+
+/* -------------------------
+   HISTORIAL
+   -------------------------*/
+function renderHistorialUsuario(me){
+  tableHistUser.innerHTML = '';
+  if (!me || !me.compras || !me.compras.length){ tableHistUser.innerHTML = '<tr><td colspan="4">No hay compras.</td></tr>'; return; }
+  me.compras.slice().reverse().forEach(c=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${new Date(c.fecha).toLocaleString()}</td><td>${c.nombre}</td><td>$${c.precio}</td><td>${c.cantidad}</td>`;
+    tableHistUser.appendChild(tr);
+  });
+}
+
+function renderHistorialAll(){
+  tableHistAll.innerHTML = '';
+  const compras = dbGet(DB.comprasKey) || [];
+  if (!compras.length){ tableHistAll.innerHTML = '<tr><td colspan="5">No hay compras.</td></tr>'; return; }
+  compras.slice().reverse().forEach(c=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${new Date(c.fecha).toLocaleString()}</td><td>${c.usuario}</td><td>${c.nombre}</td><td>$${c.precio}</td><td>${c.cantidad}</td>`;
+    tableHistAll.appendChild(tr);
+  });
+}
+
+/* Admin: ver todas las compras */
+btnViewAllPurchases.addEventListener('click', ()=>{
+  histAllDiv.classList.toggle('hidden');
+  renderHistorialAll();
+});
+
+/* Mostrar mensajes globales */
+function showGlobalMsg(text, type='success'){
+  globalMsg.innerHTML = `<div class="notice ${type==='success'?'success':'error'}">${text}</div>`;
+  setTimeout(()=> globalMsg.innerHTML = '', 3500);
+}
+
+/* -------------------------
+   Reiniciar datos (pruebas)
+   -------------------------*/
+btnClearSample.addEventListener('click', ()=>{
+  if (!confirm('Reiniciar productos, compras y usuarios de prueba?')) return;
+  // Borra todo (excepto sesion)
+  dbSet(DB.productosKey, [
+    { id: Date.now()+1, nombre:'Camiseta', precio:1200, stock:5, imagen:'' },
+    { id: Date.now()+2, nombre:'Gorra', precio:450, stock:8, imagen:'' }
+  ]);
+  dbSet(DB.comprasKey, []);
+  dbSet(DB.usuariosKey, []);
+  // mantener al usuario actual si existiera? lo cerramos para simplicidad
+  clearSesion(); location.reload();
+});
+
+/* -------------------------
+   Inicial UI / helpers
+   -------------------------*/
+function initUI(){
+  // Si no hay usuarios, crear ejemplo rápido para login: user:user / admin:admin
+  const usuarios = dbGet(DB.usuariosKey);
+  if (!usuarios.length){
+    usuarios.push({ user:'user', pass:'user', role:'user', compras:[] });
+    usuarios.push({ user:'admin', pass:'admin', role:'admin', compras:[] });
+    dbSet(DB.usuariosKey, usuarios);
+  }
+
+  // Si sesión existe, mostrar tienda
+  if (getSesion()){
+    showShop();
+  } else {
+    viewLogin.classList.remove('hidden');
+    viewRegister.classList.add('hidden');
+    viewShop.classList.add('hidden');
+  }
+
+  // Control: si sos user mostrar historial personal visible, si admin también
+  histUserDiv.classList.remove('hidden');
+}
+
+/* Ejecutar init */
+initUI();
+
+/* Al cargar tienda, actualizar visibilidad de panel admin (en caso de session activa) */
+document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState === 'visible' && getSesion()) showShop(); });
+
+</script>
 </body>
 </html>
