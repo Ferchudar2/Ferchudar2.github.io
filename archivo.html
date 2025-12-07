@@ -1,449 +1,508 @@
+<?php
+// Iniciar sesión
+session_start();
+
+// Verifica si la variable de sesión 'usuario' está definida. 
+// Si no lo está, redirige al usuario a la página de inicio de sesión.
+if (!isset($_SESSION["usuario"])) {
+    header("Location: login.php");
+    exit();
+}
+
+// ----------------------------------------------------
+// 0. LEER PRODUCTOS LOCALES (MySQL) — para mostrar imagen local
+// ----------------------------------------------------
+$db_server = "localhost";
+$db_user = "root";
+$db_password = "";
+$db_name = "ferreteria_db";
+$port = 3306;
+
+$productos_locales = [];
+$conn_fetch = @new mysqli($db_server, $db_user, $db_password, $db_name, $port);
+if (!$conn_fetch->connect_error) {
+    $sql_select = "SELECT id, descripcion, codigo, precio, stock, stock_minimo, importado, categoria, imagen FROM productos ORDER BY id DESC LIMIT 100";
+    $resultado = $conn_fetch->query($sql_select);
+    if ($resultado) {
+        while ($fila = $resultado->fetch_assoc()) {
+            $productos_locales[] = $fila;
+        }
+        $resultado->free();
+    }
+    $conn_fetch->close();
+}
+
+// Opcional: Obtener el nombre de usuario para mostrarlo en el panel
+$usuario_actual = $_SESSION["usuario"];
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Tienda Pixel (Single HTML) - Fernando</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<style>
-:root{
-  --g1:#2c5364; --g2:#203a43; --g3:#0f2027;
-  --panel: rgba(0,0,0,0.8);
-  --accent:#00bcd4; --accent-dark:#0097a7; --success:#00e676; --danger:#ff5252;
-  --card:#101820; --muted:#b2ebf2;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Inter, Arial, sans-serif;background: linear-gradient(to right,var(--g1),var(--g2),var(--g3)); color:#fff;}
-h2{font-family:'Press Start 2P',monospace;color:var(--accent);text-align:center;margin:0 0 12px}
-a{color:var(--accent)}
-/* container left (login/register) original look */
-.container { background: var(--panel); padding: 20px; border-radius: 12px; width: 360px; box-shadow: 0 0 15px rgba(0,0,0,0.6); margin: 28px auto;}
-.app-wrap{max-width:1100px;margin:28px auto;display:grid;grid-template-columns:360px 1fr;gap:20px;padding:0 12px}
-@media(max-width:980px){ .app-wrap{grid-template-columns:1fr} .container{width:100%;margin:12px auto} }
-.input, input[type="text"], input[type="password"], input[type="number"], select {
-  width:100%; padding:10px; margin:6px 0; border:none; border-radius:5px; background-color:#1b1b1b; color:white; font-size:13px;
-}
-.input:focus{ outline: 2px solid rgba(0,188,212,0.12); box-shadow: 0 6px 18px rgba(0,0,0,0.6); }
-.btn { width:100%; padding:10px; background: var(--accent); border: none; color: #001; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: 'Press Start 2P'; }
-.btn:hover{ background: var(--accent-dark); transform: translateY(-2px); }
-.btn-ghost{ background:transparent; border:1px solid rgba(255,255,255,0.06); color:#dff; padding:8px; border-radius:8px; cursor:pointer; }
-.link { color: var(--accent); text-decoration:none; font-weight:700; cursor:pointer; }
-.small { text-align:center; color: var(--success); margin-top:8px; font-size:12px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Simple Stock</title>
+    <!-- Incluir Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Definición de colores principales (Azules del Login) */
+        :root {
+            --color-primary: #4b79a1; /* Azul principal */
+            --color-dark: #283e51; /* Azul oscuro - Header */
+            --color-gray-bg: #e5e7eb; /* Gris profesional */
+        }
+        .bg-primary { background-color: var(--color-primary); }
+        .hover\:bg-primary-dark:hover { background-color: #35516a; }
+        .text-dark { color: var(--color-dark); }
+        .border-primary { border-color: var(--color-primary); }
+        .resizable-box {
+            resize: both;
+            overflow: hidden;
+            display: inline-block;
+            border: 2px solid #000000ff; /* borde visible para agarrar */
+        }
 
-/* Shop */
-.shop-panel { background: var(--panel); padding: 20px; border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.6); min-height: 420px; }
-.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:12px; }
-.badge { background:rgba(0,0,0,0.25); padding:8px 10px; border-radius:8px; color:var(--muted); font-weight:700; font-size:12px; }
-.pixel-deco { width:100%; height:8px; background:linear-gradient(90deg, rgba(0,188,212,0.12), rgba(0,230,118,0.06)); margin:10px 0; border-radius:2px; }
+        .resizable-box {
+            resize: both;
+            overflow: hidden;
+            display: block;
 
-/* Grid & cards */
-.grid { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; }
-.product-card { background: var(--card); border: 3px solid rgba(0,188,212,0.08); border-radius:10px; width:220px; padding:12px; display:inline-block; vertical-align:top; transition: transform .12s ease, box-shadow .12s ease; image-rendering: pixelated; }
-.product-card:hover{ transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.6); border-color: rgba(0,188,212,0.26); }
-.product-card img{ width:100%; height:120px; object-fit:cover; border-radius:6px; margin-bottom:8px; image-rendering: pixelated; }
-.product-card h4{ color:var(--muted); margin:6px 0; font-size:13px; font-family: 'Press Start 2P'; }
-.product-card p{ margin:4px 0; color:#bfeff6; font-size:12px; }
-.row { display:flex; gap:8px; margin-top:8px; }
-.btn-small { padding:8px; border-radius:6px; border:0; cursor:pointer; font-weight:700; font-size:12px; }
-.btn-buy { background:var(--accent); color:#001; border-radius:6px; }
-.btn-edit { background:#ffd66b; color:#111 }
-.btn-del { background:#ff7b7b; color:#111 }
+            width: 150px;        /* tamaño inicial */
+            height: 150px;
 
-/* admin panel small */
-.admin-panel { background:rgba(0,0,0,0.45); padding:14px; border-radius:8px; margin-top:12px; }
-.file-input { padding:8px; border-radius:6px; background:#111; color:#fff; border:1px dashed rgba(255,255,255,0.04); }
+            max-width: 170px;    /* 🔥 LÍMITE REAL */
+            max-height: 500px;   /* podés cambiarlo si querés */
 
-/* tables */
-.table { width:100%; border-collapse:collapse; margin-top:10px; }
-.table th, .table td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.03); text-align:left; font-size:12px; }
-.table th { color:var(--muted); font-weight:800; font-family:'Press Start 2P'; font-size:11px; }
+            border-right: 2px solid #ccc; /* 🔥 “Línea” visual opcional */
+        }
 
-/* toasts */
-.toasts { position:fixed; right:18px; bottom:18px; display:flex; flex-direction:column; gap:10px; z-index:9999; }
-.toast { background: rgba(0,0,0,0.6); padding:10px 14px; border-left:6px solid var(--accent); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.6); font-weight:700; font-family:'Press Start 2P'; font-size:11px; color:#eafcff; }
+        /* Imagen adentro */
+        .resizable-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: fill; /* se deforma si querés */
+        }
 
-/* modal-ish add panel */
-#add-panel { display:none; position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:999; background:var(--panel); padding:18px; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,0.8); width:440px; }
-#add-panel img{ width:100%; height:140px; object-fit:cover; border-radius:6px; display:block; margin-top:8px; image-rendering: pixelated; }
-.hidden{display:none}
-</style>
+
+        /* Estilos generales del cuerpo: Fondo gris profesional */
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-color: var(--color-gray-bg); 
+        }
+
+        /* Responsive para el contenedor principal: 3/4 para la tabla, 1/4 para el sidebar */
+        @media (min-width: 1024px) {
+            .grid-layout {
+                grid-template-columns: 3fr 1fr;
+            }
+        }
+
+        /* Estilo para el stock bajo */
+        .stock-bajo {
+            background-color: #fef3c7; /* yellow-100 */
+        }
+    </style>
 </head>
-<body>
+<body class="text-dark">
 
-<div class="app-wrap">
-
-  <!-- LEFT -->
-  <div class="container">
-    <div id="login-view">
-      <h2>Iniciar sesión</h2>
-      <input id="login_user" class="input" type="text" placeholder="Usuario" autocomplete="username">
-      <input id="login_pass" class="input" type="password" placeholder="Contraseña" autocomplete="current-password">
-      <button id="btn-login" class="btn" type="button">ENTRAR</button>
-      <p class="small">¿No tienes cuenta? <span id="to-register" class="link">Registrate</span></p>
-      <p id="msg-login" class="small"></p>
-    </div>
-
-    <div id="register-view" style="display:none;margin-top:8px;">
-      <h2>Registrarse</h2>
-      <input id="reg_user" class="input" type="text" placeholder="Usuario">
-      <input id="reg_pass" class="input" type="password" placeholder="Contraseña">
-      <label style="font-size:12px;color:#bfeff6;margin-top:6px">Elegí rol:</label>
-      <select id="reg_role" class="input">
-        <option value="user">Usuario</option>
-        <option value="admin">Administrador</option>
-      </select>
-      <button id="btn-register" class="btn" type="button">CREAR CUENTA</button>
-      <p class="small">¿Ya tenés cuenta? <span id="to-login" class="link">Iniciar sesión</span></p>
-      <p id="msg-register" class="small"></p>
-    </div>
-
-    <div id="account-view" style="display:none;margin-top:6px;">
-      <h2>Cuenta</h2>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div style="font-size:11px;color:#bfeff6">Conectado como</div>
-          <div id="user-name" style="font-weight:800;margin-top:6px;font-family:'Press Start 2P';font-size:12px"></div>
-          <div id="user-role" style="color:#cde;font-size:11px"></div>
+    <!-- CABECERA (Header) -->
+    <header class="bg-dark text-white p-4 shadow-lg flex justify-between items-center sticky top-0 z-10">
+        <div class="text-2xl font-bold">Sistema de Gestión - Ferretería</div>
+        <div class="flex items-center space-x-4">
+            <span class="text-sm">Usuario: <span class="font-semibold"><?php echo htmlspecialchars($usuario_actual); ?></span></span>
+            <!-- Botón de Cerrar Sesión (Simulado) -->
+            <a href="logout.php" class="bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded-lg transition-colors shadow-md">
+                Cerrar Sesión
+            </a>
         </div>
-        <div>
-          <button id="btn-logout" class="btn-ghost" type="button" style="padding:8px;border-radius:8px">Cerrar</button>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="p-4 lg:p-8 min-h-[calc(100vh-64px)]">
+        <div class="grid grid-cols-1 gap-8 lg:grid-layout">
+            
+            <!-- COLUMNA PRINCIPAL (Tabla de Artículos y Controles) -->
+            <section class="bg-white p-6 rounded-xl shadow-2xl flex flex-col h-[calc(100vh-100px)]"> 
+                
+                <!-- Controles Superiores de la Tabla -->
+                <div class="flex flex-col lg:flex-row justify-between items-center mb-6 space-y-4 lg:space-y-0 lg:space-x-4">
+                    <!-- Búsqueda -->
+                    <input type="text" id="search-input" placeholder="🔎 Buscar Artículo..." class="p-3 border border-gray-300 rounded-lg w-full lg:w-80 focus:ring-2 focus:ring-primary focus:border-primary transition-shadow">
+                    
+                    <!-- Contenedor de todos los botones de acción -->
+                    <div class="flex flex-wrap justify-end gap-2 w-full lg:w-auto">
+                        
+                        <!-- ACCIONES RÁPIDAS (MOVIMIENTO ARRIBA Y BOTONES PEQUEÑOS) -->
+                        <button class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 font-semibold transition-colors shadow-md">Exportar Excel</button>
+                        <button class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark font-semibold transition-colors shadow-md">Exportar PDF</button>
+                        <button class="bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 font-semibold transition-colors shadow-md">Actualizar Precios</button>
+                        <button class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 font-semibold transition-colors shadow-md">Stock Bajo</button>
+                        
+                        <!-- Botones de Acción de Artículos -->
+                        <a href="nuevo_articulo.php" class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 font-semibold transition-colors flex items-center shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-1">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            Nuevo Artículo
+                        </a>
+                        <button class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark font-semibold transition-colors flex items-center shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-1">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0l2.122-2.122" />
+                            </svg>
+                            Editar
+                        </button>
+                        <button class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 font-semibold transition-colors flex items-center shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-1">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.223 9m-2.28 0a48.48 48.48 0 0110.02 0m-10.02 0l-.346-1.55a4.5 4.5 0 00-4.502-4.5H5.432a4.5 4.5 0 00-4.502 4.5L1.444 9m10.87-6.264L12 6.236m0 0a1.875 1.875 0 001.875-1.875V4.5m-3.75 0V6.236m0 0a1.875 1.875 0 00-1.875 1.875m-3.75 0V7.5m3.75 0a1.875 1.875 0 00-1.875 1.875v7.5m-3.75 0V7.5m3.75 0a1.875 1.875 0 00-1.875-1.875V4.5m3.75 0V6.236m0 0a1.875 1.875 0 001.875 1.875M12 6.236V4.5m-3.75 0a1.875 1.875 0 001.875 1.875M12 6.236V4.5m-3.75 0a1.875 1.875 0 001.875 1.875" />
+                            </svg>
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla de Datos (Contenedor que usa el espacio restante y es scrollable) -->
+                <div class="overflow-x-auto border border-gray-300 rounded-lg shadow-inner flex-grow overflow-y-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <!-- Cabecera de la tabla fija al hacer scroll -->
+                        <thead class="bg-gray-100 text-xs uppercase tracking-wider text-gray-700 sticky top-0 shadow-sm">
+                            <tr>
+                                <th class="p-3 text-left">Imagen</th>
+                                <th class="p-3 text-left">Categoría / Descripción</th>
+                                <th class="p-3 text-left">Código</th>
+                                <th class="p-3 text-right">Precio</th>
+                                <th class="p-3 text-right">Stock</th>
+                                <th class="p-3 text-right">Mínimo</th>
+                                <th class="p-3 text-right">Importado</th>
+                            </tr>
+                        </thead>
+                        <!-- CUERPO DE LA TABLA (ID para inyección de datos de Firebase) -->
+                        <tbody id="products-table-body" class="bg-white divide-y divide-gray-100 text-sm">
+                            <!-- Si hay productos locales los mostramos primero (imagen local) -->
+                            <?php if (!empty($productos_locales)): ?>
+                                <?php foreach ($productos_locales as $prod): 
+                                        $img = !empty($prod['imagen']) ? htmlspecialchars($prod['imagen']) : '';
+                                        $desc = htmlspecialchars($prod['descripcion']);
+                                        $cod = htmlspecialchars($prod['codigo']);
+                                        $precio_fmt = is_numeric($prod['precio']) ? number_format((float)$prod['precio'], 2, ',', '.') : '0,00';
+                                        $stock = htmlspecialchars($prod['stock']);
+                                        $min = htmlspecialchars($prod['stock_minimo']);
+                                        $import = htmlspecialchars($prod['importado']);
+                                ?>
+                                <tr>
+                                    <td class="px-6 py-3 whitespace-nowrap" style="width: 180px;">
+                                        <?php if ($img): ?>
+                                            <div class="resizable-box">
+                                                <img src="<?php echo $img; ?>" alt="img">
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="text-gray-400">Sin imagen</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="px-6 py-3"><?php echo ($prod['categoria'] ? htmlspecialchars($prod['categoria']) . ' / ' : '') . $desc; ?></td>
+                                    <td class="px-6 py-3 font-mono"><?php echo $cod; ?></td>
+                                    <td class="px-6 py-3 text-right text-green-700 font-bold">$<?php echo $precio_fmt; ?></td>
+                                    <td class="px-6 py-3 text-right"><?php echo $stock; ?></td>
+                                    <td class="px-6 py-3 text-right text-red-500 font-semibold"><?php echo $min; ?></td>
+                                    <td class="px-6 py-3 text-right"><?php echo $import; ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <!-- Fila de carga inicial, se reemplazará por JS (Firebase) si no hay locales -->
+                                <tr>
+                                    <td colspan="7" class="p-8 text-center text-gray-500 font-semibold">
+                                        Cargando inventario...
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- COLUMNA LATERAL DERECHA (Punto de Venta) -->
+            <aside class="space-y-8">
+                
+                <!-- FACTURA / CARRITO (Mantengo los datos estáticos ya que no es el foco actual) -->
+                <div class="bg-white p-6 rounded-xl shadow-2xl border-t-4 border-primary">
+                    <h3 class="text-xl font-bold mb-4 pb-2 text-dark">FACTURA / CARRITO</h3>
+                    
+                    <div class="overflow-x-auto mb-4 border border-gray-300 rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead class="text-xs uppercase text-gray-500 bg-gray-50">
+                                <tr>
+                                    <th class="p-2 text-left">Descripción</th>
+                                    <th class="p-2 text-right">Precio</th>
+                                    <th class="p-2 text-right">Cant</th>
+                                    <th class="p-2 text-right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <!-- Elementos de Carrito Simulados -->
+                                <tr><td class="p-2">Martillo</td><td class="p-2 text-right">1.500</td><td class="p-2 text-right">1</td><td class="p-2 text-right">1.500</td></tr>
+                                <tr><td class="p-2">Codo PVC</td><td class="p-2 text-right">45.50</td><td class="p-2 text-right">10</td><td class="p-2 text-right">455.00</td></tr>
+                                <!-- Fila de Total con fondo gris claro -->
+                                <tr>
+                                    <td colspan="3" class="p-2 font-bold text-right bg-gray-100">TOTAL:</td>
+                                    <td class="p-2 text-right font-bold text-xl bg-gray-100 text-dark">$1.955,00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-between gap-2 mt-4">
+                        <button class="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 font-semibold transition-colors shadow-md">
+                            + Agregar
+                        </button>
+                        <button class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 font-semibold transition-colors shadow-md">
+                            - Quitar
+                        </button>
+                        <button class="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark font-semibold transition-colors shadow-md">
+                            Facturar
+                        </button>
+                    </div>
+                </div>
+            </aside>
+            
         </div>
-      </div>
+    </main>
 
-      <div id="admin-actions" class="admin-panel" style="display:none;">
-        <div style="display:flex;gap:8px;flex-direction:column">
-          <button id="open-add" class="btn" type="button">➕ Agregar producto</button>
-          <button id="view-all-purchases" class="btn-small" type="button" style="background:#111;color:#fff">Ver historial global</button>
-          <button id="export-all" class="btn-small" type="button" style="background:#111;color:#fff">Exportar historial (CSV)</button>
-          <button id="reset-sample" class="btn-small" type="button" style="background:#111;color:#fff">Reiniciar datos (prueba)</button>
-        </div>
-      </div>
+    <!-- Script de Firebase para la carga de datos del inventario -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // --- CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-      <div id="user-actions" class="admin-panel" style="display:none;margin-top:10px;">
-        <div style="display:flex;gap:8px;flex-direction:column">
-          <button id="view-my-purchases" class="btn" type="button">📜 Mi historial</button>
-          <button id="export-me" class="btn-small" type="button" style="background:#111;color:#fff">Exportar mi historial</button>
-        </div>
-      </div>
-    </div>
-  </div>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-  <!-- RIGHT -->
-  <div class="shop-panel">
-    <div class="header">
-      <div>
-        <h3 style="font-family:'Press Start 2P'">Tiendita Gamer (Pixel)</h3>
-        <div style="font-size:12px;color:#bfeff6">Imágenes guardadas en tu navegador — archivo único</div>
-      </div>
-      <div class="controls">
-        <div id="status" class="badge">Invitado</div>
-      </div>
-    </div>
+        const productsTableBody = document.getElementById('products-table-body');
+        const searchInput = document.getElementById('search-input');
+        let productsData = [];
 
-    <div class="pixel-deco"></div>
-    <div id="products-area" class="grid" aria-live="polite"></div>
+        // Función de utilidad para manejar la coma decimal y formato de moneda
+        const formatCurrency = (amount) => {
+            // Aseguramos que sea un número antes de formatear
+            if (typeof amount !== 'number' || isNaN(amount)) return '$0,00';
+            return `$${amount.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        };
 
-    <div id="hist-user" style="display:none;margin-top:12px">
-      <h4 style="font-family:'Press Start 2P';font-size:12px;color:var(--accent)">Mi historial</h4>
-      <table class="table" id="table-user"><thead><tr><th>Fecha</th><th>Producto</th><th>Precio</th><th>Cant</th></tr></thead><tbody></tbody></table>
-    </div>
+        // Función para renderizar la tabla con un estado de carga o vacío
+        const setTableStatus = (message, isError = false) => {
+            productsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="p-8 text-center ${isError ? 'text-red-500' : 'text-gray-500'} font-semibold">
+                        ${message}
+                    </td>
+                </tr>
+            `;
+        };
+        
+        // 1. AUTENTICACIÓN
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Autenticación exitosa
+                fetchProductsRealtime();
+            } else {
+                // Si no hay usuario, intentar iniciar sesión anónima o con token
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Error al autenticar:", error.message);
+                    setTableStatus(`Error de autenticación. No se pudo cargar el inventario.`, true);
+                }
+            }
+        });
 
-    <div id="hist-all" style="display:none;margin-top:12px">
-      <h4 style="font-family:'Press Start 2P';font-size:12px;color:var(--accent)">Historial global</h4>
-      <table class="table" id="table-all"><thead><tr><th>Fecha</th><th>Usuario</th><th>Producto</th><th>Precio</th><th>Cant</th></tr></thead><tbody></tbody></table>
-    </div>
-  </div>
-</div>
+        // 2. LECTURA EN TIEMPO REAL DE PRODUCTOS
+        const fetchProductsRealtime = () => {
+            const productsCollectionPath = `/artifacts/${appId}/public/data/products`;
+            const productsRef = collection(db, productsCollectionPath);
+            const q = query(productsRef);
 
-<!-- Add/Edit panel -->
-<div id="add-panel">
-  <h3 style="font-family:'Press Start 2P';font-size:13px;color:var(--accent)">Agregar / Editar producto</h3>
-  <input id="p_name" class="input" placeholder="Nombre">
-  <div style="display:flex;gap:8px">
-    <input id="p_price" class="input" type="number" placeholder="Precio">
-    <input id="p_stock" class="input" type="number" placeholder="Stock">
-  </div>
-  <input id="p_image" class="file-input" type="file" accept="image/*">
-  <img id="p_preview" src="" alt="" style="display:none">
-  <div style="display:flex;gap:8px;margin-top:8px">
-    <button id="save-product" class="btn" type="button">GUARDAR</button>
-    <button id="cancel-product" class="btn-ghost" type="button">CANCELAR</button>
-    <button id="delete-product" class="btn-del" type="button" style="display:none">ELIMINAR</button>
-  </div>
-  <p id="add-msg" style="color:#bfeff6;font-size:12px;margin-top:8px"></p>
-</div>
+            // onSnapshot es el listener en tiempo real
+            onSnapshot(q, (snapshot) => {
+                productsData = [];
+                snapshot.forEach((doc) => {
+                    productsData.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Si la colección está vacía, mostrar mensaje claro
+                if (productsData.length === 0) {
+                    setTableStatus('La colección de artículos está vacía. ¡Agrega un nuevo artículo!');
+                    return;
+                }
+                
+                console.log("Datos de productos actualizados:", productsData.length);
+                renderProducts(productsData);
 
-<div class="toasts" id="toasts"></div>
+            }, (error) => {
+                console.error("Error al obtener los productos:", error);
+                setTableStatus(`Error al cargar el inventario: ${error.message}. Verifica la consola.`, true);
+            });
+        };
 
-<script>
-/* ======= LocalStorage keys & helpers ======= */
-const KEYS = {
-  USERS: 'fern_tienda_users_v1',
-  PRODUCTS: 'fern_tienda_products_v1',
-  SESSION: 'fern_tienda_session_v1',
-  PURCHASES: 'fern_tienda_purchases_v1'
-};
-const dbGet = k => { const s = localStorage.getItem(k); return s ? JSON.parse(s) : null };
-const dbSet = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+        // 3. RENDERIZADO DE LA TABLA
+        const renderProducts = (productsToRender) => {
+            productsTableBody.innerHTML = ''; // Limpiar tabla
+            
+            if (productsToRender.length === 0) {
+                setTableStatus('No se encontraron resultados para la búsqueda actual.');
+                return;
+            }
 
-/* init */
-if (!dbGet(KEYS.USERS)) dbSet(KEYS.USERS, [
-  { user:'user', pass:'user', role:'user', compras:[] },
-  { user:'admin', pass:'admin', role:'admin', compras:[] }
-]);
-if (!dbGet(KEYS.PRODUCTS)) dbSet(KEYS.PRODUCTS, [
-  { id:Date.now()+1, nombre:'Camiseta Pixel', precio:1200, stock:5, imagen:'' },
-  { id:Date.now()+2, nombre:'Gorra Pixel', precio:450, stock:8, imagen:'' }
-]);
-if (!dbGet(KEYS.PURCHASES)) dbSet(KEYS.PURCHASES, []);
+            productsToRender.forEach(product => {
+                // Convertir a números de forma segura
+                const stock = parseInt(product.stock || 0);
+                const stockMinimo = parseInt(product.stockMinimo || 0);
+                const precio = parseFloat(product.precio || 0);
+                const isImported = product.importado === true || product.importado === 'true'; // Manejar como booleano o string 'true'
+                
+                const isLowStock = stock < stockMinimo;
+                const rowClass = isLowStock ? 'hover:bg-blue-50 stock-bajo' : 'hover:bg-blue-50';
+                const stockClass = isLowStock ? 'text-red-600 font-semibold' : 'text-green-600';
 
-/* ======= Elements ======= */
-const loginView = document.getElementById('login-view'), registerView = document.getElementById('register-view'), accountView = document.getElementById('account-view');
-const loginUser = document.getElementById('login_user'), loginPass = document.getElementById('login_pass'), btnLogin = document.getElementById('btn-login'), msgLogin = document.getElementById('msg-login');
-const regUser = document.getElementById('reg_user'), regPass = document.getElementById('reg_pass'), regRole = document.getElementById('reg_role'), btnRegister = document.getElementById('btn-register'), msgRegister = document.getElementById('msg-register');
-const toRegister = document.getElementById('to-register'), toLogin = document.getElementById('to-login');
-const status = document.getElementById('status'), productsArea = document.getElementById('products-area');
-const userName = document.getElementById('user-name'), userRole = document.getElementById('user-role'), btnLogout = document.getElementById('btn-logout');
-const adminActions = document.getElementById('admin-actions'), userActions = document.getElementById('user-actions');
-const openAdd = document.getElementById('open-add'), addPanel = document.getElementById('add-panel'), pName = document.getElementById('p_name'), pPrice = document.getElementById('p_price'), pStock = document.getElementById('p_stock'), pImage = document.getElementById('p_image'), pPreview = document.getElementById('p_preview');
-const saveProduct = document.getElementById('save-product'), cancelProduct = document.getElementById('cancel-product'), deleteProductBtn = document.getElementById('delete-product'), addMsg = document.getElementById('add-msg');
-const viewMy = document.getElementById('view-my-purchases'), viewAll = document.getElementById('view-all-purchases'), exportAll = document.getElementById('export-all'), resetSample = document.getElementById('reset-sample'), exportMe = document.getElementById('export-me');
-const histUser = document.getElementById('hist-user'), tableUser = document.querySelector('#table-user tbody'), histAll = document.getElementById('hist-all'), tableAll = document.querySelector('#table-all tbody');
-const toasts = document.getElementById('toasts');
+                const row = document.createElement('tr');
+                row.className = rowClass;
+                row.innerHTML = `
+                    <td class="p-3">
+                        <img src="${product.imagen || 'uploads/default.png'}" class="w-12 h-12 object-cover rounded border" alt="img">
+                    </td>
+                    <td class="p-3 font-medium">${product.categoria || 'N/A'} / ${product.descripcion || 'Sin descripción'}</td>
+                    <td class="p-3">${product.codigo || 'N/A'}</td>
+                    <td class="p-3 text-right">${formatCurrency(precio)}</td>
+                    <td class="p-3 text-right ${stockClass}">${stock}</td>
+                    <td class="p-3 text-right">${stockMinimo}</td>
+                    <td class="p-3 text-right">${isImported ? 'Sí' : 'No'}</td>
+                `;
+                productsTableBody.appendChild(row);
+            });
+        };
 
-/* toast */
-function toast(txt, t=2600){ const el=document.createElement('div'); el.className='toast'; el.textContent=txt; toasts.appendChild(el); setTimeout(()=>{ el.style.opacity=0; el.style.transform='translateY(8px)'; setTimeout(()=>el.remove(),300) }, t); }
+        // 4. FUNCIONALIDAD DE BÚSQUEDA (Filtrado en el lado del cliente)
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            if (searchTerm === "") {
+                // Si vacío, no tocamos los productos locales ya impresos; permitimos que Firebase vuelva a poblar si corresponde
+                // Llamar a renderProducts para Firebase-data si está cargada
+                if (productsData.length > 0) renderProducts(productsData);
+                return;
+            }
 
-/* session helpers */
-const getSession = ()=> localStorage.getItem(KEYS.SESSION);
-const setSession = u=> localStorage.setItem(KEYS.SESSION, u);
-const clearSession = ()=> localStorage.removeItem(KEYS.SESSION);
+            // Filtrar tanto productos obtenidos por Firebase (si existen) como los locales
+            const combined = [...(productsData || [] )];
 
-/* product helpers */
-const getProducts = ()=> dbGet(KEYS.PRODUCTS) || [];
-const setProducts = p=> dbSet(KEYS.PRODUCTS, p);
+            // Transformar productos locales a mismo formato (evitar duplicados si Firebase ya tiene las entradas)
+            <?php if (!empty($productos_locales)): ?>
+                (function(){
+                    const localJS = <?php echo json_encode(array_map(function($p){
+                        return [
+                            'categoria' => $p['categoria'] ?? '',
+                            'descripcion' => $p['descripcion'] ?? '',
+                            'codigo' => $p['codigo'] ?? '',
+                            'precio' => $p['precio'] ?? 0,
+                            'stock' => $p['stock'] ?? 0,
+                            'stockMinimo' => $p['stock_minimo'] ?? 0,
+                            'importado' => $p['importado'] ?? 'No',
+                            'imagen' => $p['imagen'] ?? ''
+                        ];
+                    }, $productos_locales)); ?>;
 
-/* ======= Render products (delegation friendly) ======= */
-function renderProducts(){
-  const products = getProducts();
-  productsArea.innerHTML = '';
-  if (!products.length) { productsArea.innerHTML = '<div style="color:#bfeff6">No hay productos</div>'; return; }
-  products.forEach(p=>{
-    const card = document.createElement('div'); card.className='product-card'; card.dataset.id = p.id;
-    const img = document.createElement('img'); img.src = p.imagen || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="140"><rect width="100%" height="100%" fill="%23070b0f"/></svg>';
-    const h4 = document.createElement('h4'); h4.textContent = p.nombre;
-    const price = document.createElement('p'); price.className='price'; price.textContent = '$' + Number(p.precio);
-    const stock = document.createElement('p'); stock.className='stock'; stock.textContent = 'Stock: ' + p.stock;
-    const row = document.createElement('div'); row.className='row';
+                    // Añadir locales si no están ya (comparando por código)
+                    localJS.forEach(l => {
+                        const exists = combined.some(c => (c.codigo || '') === (l.codigo || ''));
+                        if (!exists) combined.push(l);
+                    });
 
-    const buy = document.createElement('button'); buy.className='btn-small btn-buy'; buy.type='button'; buy.textContent='COMPRAR'; buy.dataset.action='buy';
-    if (p.stock <= 0){ buy.disabled = true; buy.textContent = 'SIN STOCK'; buy.style.opacity = 0.6; }
-    row.appendChild(buy);
+                    // Reasignar combined en el scope superior
+                    window.__combinedProducts = combined;
+                })();
+            <?php else: ?>
+                window.__combinedProducts = combined;
+            <?php endif; ?>
 
-    const session = getSession(); const users = dbGet(KEYS.USERS) || []; const me = users.find(u=>u.user === session);
-    if (me && me.role === 'admin'){
-      const edit = document.createElement('button'); edit.className='btn-small btn-edit'; edit.type='button'; edit.textContent='EDIT'; edit.dataset.action='edit';
-      const del = document.createElement('button'); del.className='btn-small btn-del'; del.type='button'; del.textContent='DEL'; del.dataset.action='delete';
-      row.appendChild(edit); row.appendChild(del);
-    }
+            const source = window.__combinedProducts || combined;
 
-    card.appendChild(img); card.appendChild(h4); card.appendChild(price); card.appendChild(stock); card.appendChild(row);
-    productsArea.appendChild(card);
-  });
-}
+            const filtered = source.filter(product => {
+                const searchString = `
+                    ${product.categoria || ''}
+                    ${product.descripcion || ''}
+                    ${product.codigo || ''}
+                    ${product.precio || ''}
+                    ${product.stock || ''}
+                    ${product.stockMinimo || ''}
+                    ${product.importado || ''}
+                `.toLowerCase();
 
-/* Delegation for product buttons (reliable when cards re-render) */
-productsArea.addEventListener('click', function(e){
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  const action = btn.dataset.action;
-  const card = btn.closest('.product-card');
-  if (!card) return;
-  const id = Number(card.dataset.id);
-  if (action === 'buy') return comprar(id);
-  if (action === 'edit') return openAddPanel(id);
-  if (action === 'delete') {
-    if (!confirm('Eliminar producto?')) return;
-    return deleteProductById(id);
-  }
-});
+                return searchString.includes(searchTerm);
+            });
 
-/* Delete (centralized) */
-function deleteProductById(id){
-  const prods = getProducts().filter(p => p.id !== id);
-  setProducts(prods);
-  renderProducts();
-  toast('Producto eliminado');
-}
+            // Renderizar filas filtradas
+            if (filtered.length === 0) {
+                setTableStatus('No se encontraron resultados para la búsqueda actual.');
+                return;
+            }
 
-/* Comprar */
-function comprar(id){
-  const prods = getProducts();
-  const p = prods.find(x=>x.id === id);
-  if (!p) return;
-  if (p.stock <= 0){ toast('Sin stock'); return; }
-  p.stock = p.stock - 1;
-  setProducts(prods);
-  const purchases = dbGet(KEYS.PURCHASES) || [];
-  const fecha = new Date().toISOString();
-  const usuario = getSession() || 'invitado';
-  purchases.push({ fecha, usuario, productoId: p.id, nombre: p.nombre, precio: p.precio, cantidad: 1 });
-  dbSet(KEYS.PURCHASES, purchases);
-  const users = dbGet(KEYS.USERS) || [];
-  const idx = users.findIndex(u=>u.user === usuario);
-  if (idx >= 0){ users[idx].compras = users[idx].compras || []; users[idx].compras.push({ fecha, productoId: p.id, nombre: p.nombre, precio: p.precio, cantidad: 1 }); dbSet(KEYS.USERS, users); }
-  toast('Comprado: ' + p.nombre);
-  renderProducts(); renderHistories();
-}
+            productsTableBody.innerHTML = '';
+            filtered.forEach(product => {
+                const stock = parseInt(product.stock || 0);
+                const stockMinimo = parseInt(product.stockMinimo || product.stock_minimo || 0);
+                const precio = parseFloat(product.precio || 0);
+                const isImported = product.importado === true || product.importado === 'true' || product.importado === 'Sí';
 
-/* Histories */
-function renderHistories(){
-  const session = getSession();
-  if (!session){ histUser.style.display='none'; histAll.style.display='none'; return; }
-  const users = dbGet(KEYS.USERS) || []; const me = users.find(u=>u.user === session);
-  tableUser.innerHTML = '';
-  if (me && me.compras && me.compras.length){ histUser.style.display='block'; me.compras.slice().reverse().forEach(c=>{ const tr = document.createElement('tr'); tr.innerHTML = `<td>${new Date(c.fecha).toLocaleString()}</td><td>${c.nombre}</td><td>$${c.precio}</td><td>${c.cantidad}</td>`; tableUser.appendChild(tr); }); }
-  else { tableUser.innerHTML = '<tr><td colspan="4">No hay compras</td></tr>'; histUser.style.display='block'; }
-  const purchases = dbGet(KEYS.PURCHASES) || [];
-  tableAll.innerHTML = '';
-  if (purchases.length){ purchases.slice().reverse().forEach(c=>{ const tr = document.createElement('tr'); tr.innerHTML = `<td>${new Date(c.fecha).toLocaleString()}</td><td>${c.usuario}</td><td>${c.nombre}</td><td>$${c.precio}</td><td>${c.cantidad}</td>`; tableAll.appendChild(tr); }); }
-  else tableAll.innerHTML = '<tr><td colspan="5">Sin compras globales</td></tr>';
-}
+                const isLowStock = stock < stockMinimo;
+                const rowClass = isLowStock ? 'hover:bg-blue-50 stock-bajo' : 'hover:bg-blue-50';
+                const stockClass = isLowStock ? 'text-red-600 font-semibold' : 'text-green-600';
 
-/* ========== Auth ========== */
-toRegister.onclick = ()=> { loginView.style.display='none'; registerView.style.display='block'; msgRegister.textContent=''; }
-toLogin.onclick = ()=> { registerView.style.display='none'; loginView.style.display='block'; msgLogin.textContent=''; }
+                const tr = document.createElement('tr');
+                tr.className = rowClass;
+                tr.innerHTML = `
+                    <td class="p-3">
+                        <div class="resizable-box" style="width:150px; height:150px;">
+                            <img src="${product.imagen}" class="w-full h-full object-fill">
+                        </div>
+                    </td>
 
-btnRegister.onclick = ()=>{
-  const user = (regUser.value||'').trim(); const pass = (regPass.value||'').trim(); const role = regRole.value || 'user';
-  if (!user || !pass){ msgRegister.textContent = 'Completá usuario y contraseña.'; return; }
-  const users = dbGet(KEYS.USERS) || [];
-  if (users.some(u=>u.user === user)){ msgRegister.textContent = 'Usuario ya existe.'; return; }
-  users.push({ user, pass, role, compras: [] }); dbSet(KEYS.USERS, users); setSession(user); regUser.value=''; regPass.value=''; regRole.value='user'; toast('Cuenta creada — sesión iniciada'); updateUIForSession();
-};
+                    <td class="p-3 font-medium">
+                        ${product.categoria || 'N/A'} / ${product.descripcion || 'Sin descripción'}
+                    </td>
 
-btnLogin.onclick = ()=>{
-  const user = (loginUser.value||'').trim(); const pass = (loginPass.value||'').trim();
-  if (!user || !pass){ msgLogin.textContent = 'Completá usuario y contraseña.'; return; }
-  const users = dbGet(KEYS.USERS) || []; const u = users.find(x=>x.user===user && x.pass===pass);
-  if (!u){ msgLogin.textContent = 'Usuario o contraseña incorrectos.'; return; }
-  setSession(user); loginUser.value=''; loginPass.value=''; toast('Bienvenido, ' + user); updateUIForSession();
-};
+                    <td class="p-3">
+                        ${product.codigo || 'N/A'}
+                    </td>
 
-btnLogout.onclick = ()=> { clearSession(); toast('Sesión cerrada'); updateUIForSession(); };
+                    <td class="p-3 text-right">
+                        ${formatCurrency(precio)}
+                    </td>
 
-/* ========== UI update ========== */
-function updateUIForSession(){
-  const session = getSession();
-  if (!session){
-    loginView.style.display='block'; registerView.style.display='none'; accountView.style.display='none'; status.textContent='Invitado'; userName.textContent=''; userRole.textContent=''; adminActions.style.display='none'; userActions.style.display='none'; histUser.style.display='none'; histAll.style.display='none'; renderProducts(); return;
-  }
-  loginView.style.display='none'; registerView.style.display='none'; accountView.style.display='block';
-  const users = dbGet(KEYS.USERS) || []; const me = users.find(u=>u.user===session);
-  status.textContent = session + ' (' + me.role + ')'; userName.textContent = session; userRole.textContent = me.role;
-  if (me.role === 'admin'){ adminActions.style.display='block'; userActions.style.display='block'; } else { adminActions.style.display='none'; userActions.style.display='block'; }
-  renderProducts(); renderHistories();
-}
+                    <td class="p-3 text-right ${stockClass}">
+                        ${stock}
+                    </td>
 
-/* ========== Add/Edit product panel (with proper FileReader usage) ========== */
-let editingId = null;
-openAdd.onclick = ()=> openAddPanel();
+                    <td class="p-3 text-right">
+                        ${stockMinimo}
+                    </td>
 
-function openAddPanel(id){
-  editingId = id || null;
-  addPanel.style.display = 'block'; addMsg.textContent=''; pName.value=''; pPrice.value=''; pStock.value=''; pImage.value=null; pPreview.style.display='none';
-  deleteProductBtn.style.display = 'none';
-  if (editingId){
-    const p = getProducts().find(x=>x.id === editingId);
-    if (p){ pName.value = p.nombre; pPrice.value = p.precio; pStock.value = p.stock; if (p.imagen){ pPreview.src = p.imagen; pPreview.style.display='block'; } deleteProductBtn.style.display='inline-block'; }
-  }
-}
+                    <td class="p-3 text-right">
+                        ${isImported ? 'Sí' : 'No'}
+                    </td>
+                `;
 
-cancelProduct.onclick = ()=> { addPanel.style.display='none'; editingId = null; }
+                productsTableBody.appendChild(tr);
+            });
 
-pImage.addEventListener('change', ()=> {
-  const f = pImage.files[0];
-  if (!f) { pPreview.style.display='none'; return; }
-  const fr = new FileReader();
-  fr.onload = ()=> { pPreview.src = fr.result; pPreview.style.display='block'; }
-  fr.readAsDataURL(f);
-});
+        });
 
-saveProduct.onclick = ()=>{
-  const name = (pName.value||'').trim(); const price = Number(pPrice.value)||0; const stock = Number(pStock.value)||0;
-  if (!name || price <= 0 || stock < 0){ addMsg.textContent = 'Completa nombre, precio y stock válidos.'; return; }
-  const file = pImage.files[0];
-  const apply = (imgData)=>{
-    if (!editingId){
-      const products = getProducts(); const id = Date.now(); products.push({ id, nombre: name, precio: price, stock: stock, imagen: imgData || '' }); setProducts(products); toast('Producto agregado');
-    } else {
-      const products = getProducts(); const idx = products.findIndex(p=>p.id === editingId);
-      if (idx >= 0){ products[idx] = { ...products[idx], nombre: name, precio: price, stock: stock, imagen: imgData || products[idx].imagen || '' }; setProducts(products); toast('Producto actualizado'); }
-    }
-    addPanel.style.display='none'; editingId = null; renderProducts();
-  };
-  if (file){
-    const fr = new FileReader();
-    fr.onload = ()=> apply(fr.result);
-    fr.readAsDataURL(file);
-  } else {
-    // No new file: keep existing image if editing; otherwise none
-    apply(null);
-  }
-};
+    </script>
 
-deleteProductBtn.onclick = ()=>{
-  if (!editingId) return;
-  if (!confirm('Eliminar producto?')) return;
-  deleteProductById(editingId);
-  addPanel.style.display='none'; editingId=null;
-};
-
-/* ========== Export CSV & admin actions ========== */
-function exportCSV(arr, name){
-  if (!arr || !arr.length){ toast('Nada para exportar'); return; }
-  const keys = Object.keys(arr[0]);
-  const csv = [keys.join(',')].concat(arr.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(',')).join('\n'));
-  const blob = new Blob(csv, { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-
-viewAll.onclick = ()=> {
-  const session = getSession(); const users = dbGet(KEYS.USERS) || []; const me = users.find(u=>u.user===session);
-  if (!me || me.role !== 'admin'){ toast('Acceso denegado'); return; }
-  histAll.style.display = histAll.style.display === 'block' ? 'none' : 'block'; renderHistories();
-};
-exportAll.onclick = ()=> {
-  const session = getSession(); const users = dbGet(KEYS.USERS) || []; const me = users.find(u=>u.user===session);
-  if (!me || me.role !== 'admin'){ toast('Acceso denegado'); return; }
-  const purchases = dbGet(KEYS.PURCHASES) || [];
-  exportCSV(purchases.map(p=>({ fecha:p.fecha, usuario:p.usuario, producto:p.nombre, precio:p.precio, cantidad:p.cantidad })), 'historial_global.csv');
-};
-resetSample.onclick = ()=>{
-  if (!confirm('Reiniciar datos de prueba? Esto cerrará tu sesión.')) return;
-  localStorage.removeItem(KEYS.USERS); localStorage.removeItem(KEYS.PRODUCTS); localStorage.removeItem(KEYS.PURCHASES); localStorage.removeItem(KEYS.SESSION); location.reload();
-};
-exportMe.onclick = ()=>{
-  const session = getSession(); if (!session){ toast('No identificado'); return; }
-  const users = dbGet(KEYS.USERS) || []; const me = users.find(u=>u.user === session); if (!me){ toast('Usuario no encontrado'); return; }
-  const data = (me.compras || []).map(c => ({ fecha:c.fecha, producto:c.nombre, precio:c.precio, cantidad:c.cantidad }));
-  exportCSV(data, `historial_${me.user}.csv`);
-};
-viewMy.onclick = ()=> { histUser.style.display = histUser.style.display === 'block' ? 'none' : 'block'; renderHistories(); };
-
-/* ========== Init ========== */
-function init(){
-  renderProducts(); updateUIForSession();
-}
-init();
-
-/* expose delete for debugging (optional) */
-window.deleteProductById = deleteProductById;
-
-/* UX: Enter to login/register */
-loginPass.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') btnLogin.click(); });
-regPass.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') btnRegister.click(); });
-</script>
 </body>
 </html>
